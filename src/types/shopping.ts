@@ -17,5 +17,7 @@ export interface ShoppingItem {
   price: number;
   category: ShoppingCategory;
   bought: boolean;
+  responsible: string;
+  urgent: boolean;
   createdAt: string;
 }

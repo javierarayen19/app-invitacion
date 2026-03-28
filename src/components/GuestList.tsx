@@ -133,6 +133,11 @@ export default function GuestList({
                   {guest.dietary}
                 </span>
               )}
+              {guest.plus_one && (
+                <span className="text-gold/50 bg-gold/10 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                  +1{guest.plus_one_name ? ` ${guest.plus_one_name}` : ""}
+                </span>
+              )}
               {guest.declined && guest.decline_reason && (
                 <span className="text-foreground/30 text-[10px]">
                   — {guest.decline_reason}

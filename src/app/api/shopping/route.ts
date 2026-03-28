@@ -6,7 +6,7 @@ export async function GET() {
   const db = getDb();
 
   const result = await db.execute(
-    "SELECT id, name, quantity, price, category, bought, created_at as createdAt FROM shopping_items ORDER BY category, created_at DESC"
+    "SELECT id, name, quantity, price, category, bought, responsible, urgent, created_at as createdAt FROM shopping_items ORDER BY category, urgent DESC, created_at DESC"
   );
 
   const items = (result.rows as Record<string, unknown>[]).map((row) => ({
@@ -16,6 +16,8 @@ export async function GET() {
     price: row.price,
     category: row.category,
     bought: Boolean(row.bought),
+    responsible: row.responsible,
+    urgent: Boolean(row.urgent),
     createdAt: row.createdAt,
   }));
 
@@ -27,7 +29,7 @@ export async function POST(request: Request) {
   const db = getDb();
 
   const body = await request.json();
-  const { name, category, quantity = 1, price = 0 } = body;
+  const { name, category, quantity = 1, price = 0, responsible = "", urgent = false } = body;
 
   if (!name || !name.trim()) {
     return Response.json({ error: "El nombre es requerido" }, { status: 400 });
@@ -40,11 +42,11 @@ export async function POST(request: Request) {
   const id = crypto.randomUUID();
 
   await db.execute({
-    sql: "INSERT INTO shopping_items (id, name, quantity, price, category) VALUES (?, ?, ?, ?, ?)",
-    args: [id, name.trim(), quantity, price, category],
+    sql: "INSERT INTO shopping_items (id, name, quantity, price, category, responsible, urgent) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    args: [id, name.trim(), quantity, price, category, responsible.trim(), urgent ? 1 : 0],
   });
 
-  return Response.json({ id, name: name.trim(), quantity, price, category, bought: false }, { status: 201 });
+  return Response.json({ id, name: name.trim(), quantity, price, category, bought: false, responsible: responsible.trim(), urgent }, { status: 201 });
 }
 
 export async function PATCH(request: Request) {

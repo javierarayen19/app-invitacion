@@ -89,7 +89,9 @@ export default function ShoppingList({
                              border transition-all duration-300 ${
                                item.bought
                                  ? "bg-emerald-accent/[0.03] border-emerald-accent/10"
-                                 : "bg-white/[0.02] border-transparent hover:bg-white/[0.05] hover:border-border"
+                                 : item.urgent
+                                   ? "bg-rose-accent/[0.04] border-l-2 border-l-rose-accent/40 border-t-transparent border-r-transparent border-b-transparent hover:bg-rose-accent/[0.07]"
+                                   : "bg-white/[0.02] border-transparent hover:bg-white/[0.05] hover:border-border"
                              }`}
                 >
                   {/* Checkbox */}
@@ -111,15 +113,25 @@ export default function ShoppingList({
 
                   {/* Item info */}
                   <div className={`flex-1 min-w-0 ${item.bought ? "opacity-40" : ""}`}>
-                    <span
-                      className={`text-sm font-medium ${
-                        item.bought
-                          ? "line-through text-foreground/50"
-                          : "text-foreground/90"
-                      }`}
-                    >
-                      {item.name}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {item.urgent && !item.bought && (
+                        <span className="text-xs" title="Urgente">🔥</span>
+                      )}
+                      <span
+                        className={`text-sm font-medium ${
+                          item.bought
+                            ? "line-through text-foreground/50"
+                            : "text-foreground/90"
+                        }`}
+                      >
+                        {item.name}
+                      </span>
+                    </div>
+                    {item.responsible && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-foreground/40 mt-0.5">
+                        👤 {item.responsible}
+                      </span>
+                    )}
                   </div>
 
                   {/* Quantity & Price */}

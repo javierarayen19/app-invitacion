@@ -5,7 +5,7 @@ export async function GET() {
   await initDb();
   const db = getDb();
   const result = await db.execute(
-    `SELECT id, name, confirmed, declined, decline_reason, dietary, created_at as createdAt
+    `SELECT id, name, confirmed, declined, decline_reason, dietary, plus_one, plus_one_name, created_at as createdAt
      FROM guests ORDER BY created_at DESC`
   );
 
@@ -13,6 +13,7 @@ export async function GET() {
     ...g,
     confirmed: Boolean(g.confirmed),
     declined: Boolean(g.declined),
+    plus_one: Boolean(g.plus_one),
   }));
 
   return Response.json(guests);

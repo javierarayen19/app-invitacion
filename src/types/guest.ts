@@ -5,5 +5,7 @@ export interface Guest {
   declined: boolean;
   decline_reason: string;
   dietary: string;
+  plus_one: boolean;
+  plus_one_name: string;
   createdAt: string;
 }

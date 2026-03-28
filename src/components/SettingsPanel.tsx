@@ -14,6 +14,7 @@ export default function SettingsPanel() {
     party_message: "",
     party_safety_message: "",
     admin_password: "",
+    party_map_url: "",
   });
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -144,6 +145,22 @@ export default function SettingsPanel() {
               placeholder="Ej: Mi Casa, Calle Los Aromos 123"
               className={inputClass}
             />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-foreground/40 mb-1.5 tracking-wide uppercase">
+              Link de Google Maps
+            </label>
+            <input
+              type="url"
+              value={settings.party_map_url}
+              onChange={(e) => updateField("party_map_url", e.target.value)}
+              placeholder="https://maps.google.com/..."
+              className={inputClass}
+            />
+            <p className="text-xs text-foreground/20 mt-1">
+              Se mostrara un boton en la invitacion para ver la ubicacion
+            </p>
           </div>
 
           <div>

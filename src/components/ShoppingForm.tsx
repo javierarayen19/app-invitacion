@@ -12,6 +12,8 @@ export default function ShoppingForm({ onItemAdded }: ShoppingFormProps) {
   const [quantity, setQuantity] = useState(1);
   const [price, setPrice] = useState(0);
   const [category, setCategory] = useState<string>(SHOPPING_CATEGORIES[0]);
+  const [responsible, setResponsible] = useState("");
+  const [urgent, setUrgent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -24,7 +26,7 @@ export default function ShoppingForm({ onItemAdded }: ShoppingFormProps) {
       const res = await fetch("/api/shopping", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, quantity, price, category }),
+        body: JSON.stringify({ name, quantity, price, category, responsible, urgent }),
       });
 
       if (!res.ok) {
@@ -35,6 +37,8 @@ export default function ShoppingForm({ onItemAdded }: ShoppingFormProps) {
       setName("");
       setQuantity(1);
       setPrice(0);
+      setResponsible("");
+      setUrgent(false);
       onItemAdded();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
@@ -114,6 +118,41 @@ export default function ShoppingForm({ onItemAdded }: ShoppingFormProps) {
             </option>
           ))}
         </select>
+      </div>
+
+      <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
+        <div>
+          <label className="block text-sm font-medium text-foreground/50 mb-2 tracking-wide">
+            Responsable
+          </label>
+          <input
+            type="text"
+            value={responsible}
+            onChange={(e) => setResponsible(e.target.value)}
+            placeholder="Ej: Karen"
+            className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-border
+                       text-foreground placeholder:text-foreground/20
+                       focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20
+                       focus:bg-white/[0.05] transition-all duration-300"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-foreground/50 mb-2 tracking-wide">
+            Urgente
+          </label>
+          <button
+            type="button"
+            onClick={() => setUrgent(!urgent)}
+            className={`px-4 py-3.5 rounded-xl border transition-all duration-300 text-lg
+                       ${
+                         urgent
+                           ? "bg-rose-accent/10 border-rose-accent/40 text-rose-accent shadow-[0_0_12px_rgba(244,63,94,0.15)]"
+                           : "bg-white/[0.03] border-border text-foreground/30 hover:border-gold/30 hover:text-foreground/50"
+                       }`}
+          >
+            🔥
+          </button>
+        </div>
       </div>
 
       {error && (

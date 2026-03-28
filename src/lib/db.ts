@@ -38,6 +38,26 @@ export async function initDb() {
   `);
 
   await db.execute(`
+    CREATE TABLE IF NOT EXISTS photos (
+      id TEXT PRIMARY KEY,
+      image_data TEXT NOT NULL,
+      caption TEXT NOT NULL DEFAULT '',
+      uploaded_by TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `);
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS playlist (
+      id TEXT PRIMARY KEY,
+      song_name TEXT NOT NULL,
+      artist TEXT NOT NULL DEFAULT '',
+      suggested_by TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `);
+
+  await db.execute(`
     CREATE TABLE IF NOT EXISTS shopping_items (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -57,12 +77,16 @@ export async function initDb() {
   await safeAlter("ALTER TABLE guests ADD COLUMN declined INTEGER NOT NULL DEFAULT 0");
   await safeAlter("ALTER TABLE guests ADD COLUMN decline_reason TEXT NOT NULL DEFAULT ''");
   await safeAlter("ALTER TABLE shopping_items ADD COLUMN price INTEGER NOT NULL DEFAULT 0");
+  await safeAlter("ALTER TABLE shopping_items ADD COLUMN responsible TEXT NOT NULL DEFAULT ''");
+  await safeAlter("ALTER TABLE shopping_items ADD COLUMN urgent INTEGER NOT NULL DEFAULT 0");
+  await safeAlter("ALTER TABLE guests ADD COLUMN plus_one INTEGER NOT NULL DEFAULT 0");
+  await safeAlter("ALTER TABLE guests ADD COLUMN plus_one_name TEXT NOT NULL DEFAULT ''");
 
   // Seed settings
   const seeds = [
     "notification_email", "party_date", "party_time",
     "party_location", "birthday_person", "party_message",
-    "party_safety_message", "admin_password",
+    "party_safety_message", "admin_password", "party_map_url",
   ];
   for (const key of seeds) {
     await db.execute({

@@ -153,6 +153,10 @@ export default function InvitacionPage({
   // Dietary multi-select
   const [selectedDietary, setSelectedDietary] = useState<string[]>([]);
 
+  // Plus one
+  const [plusOne, setPlusOne] = useState(false);
+  const [plusOneName, setPlusOneName] = useState("");
+
   // Decline
   const [showDeclineForm, setShowDeclineForm] = useState(false);
   const [declineReason, setDeclineReason] = useState("");
@@ -169,6 +173,10 @@ export default function InvitacionPage({
         setSettings(data.settings);
         if (data.guest.dietary) {
           setSelectedDietary(data.guest.dietary.split(", ").filter(Boolean));
+        }
+        if (data.guest.plus_one) {
+          setPlusOne(true);
+          setPlusOneName(data.guest.plus_one_name || "");
         }
       })
       .catch(() => setNotFound(true))
@@ -203,10 +211,10 @@ export default function InvitacionPage({
       const res = await fetch(`/api/guests/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dietary: dietaryStr, action: "confirm" }),
+        body: JSON.stringify({ dietary: dietaryStr, action: "confirm", plus_one: plusOne, plus_one_name: plusOne ? plusOneName : "" }),
       });
       if (res.ok) {
-        setGuest((prev) => (prev ? { ...prev, confirmed: true, declined: false, dietary: dietaryStr } : prev));
+        setGuest((prev) => (prev ? { ...prev, confirmed: true, declined: false, dietary: dietaryStr, plus_one: plusOne, plus_one_name: plusOne ? plusOneName : "" } : prev));
         setJustConfirmed(true);
       }
     } catch (err) {
@@ -457,6 +465,30 @@ export default function InvitacionPage({
                     </div>
                   </AnimatedSection>
 
+                  {/* Google Maps link */}
+                  {settings.party_map_url && (
+                    <AnimatedSection show={showContent} delay={1500}>
+                      <div className="mb-8 flex justify-center">
+                        <a
+                          href={settings.party_map_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full
+                                     border border-gold/40 text-gold text-sm font-medium
+                                     bg-gold/[0.06] hover:bg-gold/[0.12] hover:border-gold/60
+                                     hover:shadow-[0_0_20px_rgba(212,168,83,0.15)]
+                                     transition-all duration-300"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gold">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                            <circle cx="12" cy="10" r="3" />
+                          </svg>
+                          Ver en Google Maps
+                        </a>
+                      </div>
+                    </AnimatedSection>
+                  )}
+
                   {/* Custom message */}
                   {settings.party_message && (
                     <AnimatedSection show={showContent} delay={1700}>
@@ -507,6 +539,11 @@ export default function InvitacionPage({
                         <p className="text-emerald-accent/50 text-sm mt-1">
                           {justConfirmed ? "Gracias! Te esperamos" : "Nos vemos en la fiesta!"}
                         </p>
+                        {guest.plus_one && guest.plus_one_name && (
+                          <p className="text-emerald-accent/50 text-sm mt-2">
+                            Vienes con {guest.plus_one_name}
+                          </p>
+                        )}
                         {guest.dietary && (
                           <p className="text-emerald-accent/40 text-xs mt-3">
                             Restricciones: {guest.dietary}
@@ -577,6 +614,40 @@ export default function InvitacionPage({
                           )}
                         </div>
 
+                        {/* Plus one companion */}
+                        <div>
+                          <button
+                            type="button"
+                            onClick={() => { setPlusOne(!plusOne); if (plusOne) setPlusOneName(""); }}
+                            className="flex items-center gap-3 w-full text-left"
+                          >
+                            <span className={`relative w-11 h-6 rounded-full border transition-all duration-300 shrink-0
+                                              ${plusOne
+                                                ? "bg-gold/20 border-gold/50"
+                                                : "bg-white/[0.04] border-border"
+                                              }`}>
+                              <span className={`absolute top-0.5 w-5 h-5 rounded-full transition-all duration-300
+                                                ${plusOne
+                                                  ? "left-[22px] bg-gold shadow-[0_0_8px_rgba(212,168,83,0.4)]"
+                                                  : "left-0.5 bg-foreground/30"
+                                                }`} />
+                            </span>
+                            <span className="text-sm text-foreground/50">Vienes con acompanante?</span>
+                          </button>
+                          {plusOne && (
+                            <input
+                              type="text"
+                              value={plusOneName}
+                              onChange={(e) => setPlusOneName(e.target.value)}
+                              placeholder="Nombre del acompanante"
+                              className="mt-3 w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-border
+                                         text-foreground text-sm placeholder:text-foreground/20
+                                         focus:outline-none focus:border-gold/30
+                                         transition-all duration-300"
+                            />
+                          )}
+                        </div>
+
                         {/* Confirm button */}
                         <button
                           onClick={handleConfirm}
@@ -641,10 +712,38 @@ export default function InvitacionPage({
                       </div>
                     )}
                   </AnimatedSection>
+
+                  {/* Links to playlist and gallery */}
+                  <AnimatedSection show={showContent} delay={2300}>
+                    <div className="mt-8 grid grid-cols-2 gap-3">
+                      <a
+                        href="/playlist"
+                        className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl
+                                   border border-gold/30 text-gold text-sm font-medium
+                                   bg-gold/[0.04] hover:bg-gold/[0.10] hover:border-gold/50
+                                   hover:shadow-[0_0_15px_rgba(212,168,83,0.1)]
+                                   transition-all duration-300"
+                      >
+                        <span>🎵</span>
+                        Sugerir Canciones
+                      </a>
+                      <a
+                        href="/galeria"
+                        className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl
+                                   border border-gold/30 text-gold text-sm font-medium
+                                   bg-gold/[0.04] hover:bg-gold/[0.10] hover:border-gold/50
+                                   hover:shadow-[0_0_15px_rgba(212,168,83,0.1)]
+                                   transition-all duration-300"
+                      >
+                        <span>📸</span>
+                        Galeria de Fotos
+                      </a>
+                    </div>
+                  </AnimatedSection>
                 </div>
               </AnimatedSection>
 
-              <AnimatedSection show={showContent} delay={2400}>
+              <AnimatedSection show={showContent} delay={2600}>
                 <div className="flex justify-center gap-1 mt-8">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <div key={i} className="w-1 h-1 rounded-full bg-gold/20" />

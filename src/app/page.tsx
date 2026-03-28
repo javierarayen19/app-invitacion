@@ -227,8 +227,51 @@ export default function Home() {
         </section>
 
         {/* Stats */}
-        <section className="mb-10">
+        <section className="mb-6">
           <StatsBar guests={guests} />
+        </section>
+
+        {/* Actions */}
+        <section className="mb-10 flex flex-wrap gap-3">
+          <a
+            href="/api/export"
+            download
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl
+                       bg-white/[0.03] border border-border text-foreground/40
+                       hover:text-gold hover:border-gold/20
+                       text-xs font-medium transition-all duration-300"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Exportar Invitados (CSV)
+          </a>
+          <button
+            onClick={async () => {
+              const res = await fetch("/api/reminder");
+              const data = await res.json();
+              if (data.length === 0) {
+                alert("No hay invitados pendientes!");
+                return;
+              }
+              const msg = data.map((g: { name: string }) => g.name).join(", ");
+              const firstUrl = data[0]?.whatsappUrl;
+              alert(`Invitados pendientes: ${msg}\n\nSe abrira WhatsApp para enviar recordatorio.`);
+              if (firstUrl) window.open(firstUrl, "_blank");
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl
+                       bg-white/[0.03] border border-border text-foreground/40
+                       hover:text-gold hover:border-gold/20
+                       text-xs font-medium transition-all duration-300"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            Enviar Recordatorios
+          </button>
         </section>
 
         {/* Main content */}

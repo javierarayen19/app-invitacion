@@ -10,6 +10,7 @@ const VALID_KEYS = [
   "party_message",
   "party_safety_message",
   "admin_password",
+  "party_map_url",
 ];
 
 export async function GET() {

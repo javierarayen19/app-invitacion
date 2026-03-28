@@ -11,6 +11,8 @@ export default function StatsBar({ guests }: StatsBarProps) {
   const confirmed = guests.filter((g) => g.confirmed).length;
   const declined = guests.filter((g) => g.declined).length;
   const pending = totalGuests - confirmed - declined;
+  const plusOnes = guests.filter((g) => g.plus_one && g.confirmed).length;
+  const totalAttending = confirmed + plusOnes;
 
   const stats = [
     {
@@ -80,6 +82,9 @@ export default function StatsBar({ guests }: StatsBarProps) {
           <p className="text-4xl font-display font-bold text-gold text-glow">
             {stat.value}
           </p>
+          {stat.label === "Confirmados" && plusOnes > 0 && (
+            <p className="text-[10px] text-gold/40 mt-0.5">+{plusOnes} acompanantes = {totalAttending} personas</p>
+          )}
         </div>
       ))}
     </div>

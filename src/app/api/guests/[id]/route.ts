@@ -10,7 +10,7 @@ export async function GET(
   const db = getDb();
 
   const result = await db.execute({
-    sql: "SELECT id, name, confirmed, declined, decline_reason, dietary, created_at as createdAt FROM guests WHERE id = ?",
+    sql: "SELECT id, name, confirmed, declined, decline_reason, dietary, plus_one, plus_one_name, created_at as createdAt FROM guests WHERE id = ?",
     args: [id],
   });
 
@@ -29,7 +29,7 @@ export async function GET(
   );
 
   return Response.json({
-    guest: { ...guest, confirmed: Boolean(guest.confirmed), declined: Boolean(guest.declined) },
+    guest: { ...guest, confirmed: Boolean(guest.confirmed), declined: Boolean(guest.declined), plus_one: Boolean(guest.plus_one) },
     settings,
   });
 }
@@ -45,12 +45,16 @@ export async function PATCH(
   let dietary = "";
   let action = "confirm";
   let declineReason = "";
+  let plusOne = false;
+  let plusOneName = "";
 
   try {
     const body = await request.json();
     dietary = body.dietary || "";
     action = body.action || "confirm";
     declineReason = body.decline_reason || "";
+    plusOne = body.plus_one || false;
+    plusOneName = body.plus_one_name || "";
   } catch {
     // No body sent
   }
@@ -93,8 +97,8 @@ export async function PATCH(
 
   // Confirm action
   const result = await db.execute({
-    sql: "UPDATE guests SET confirmed = 1, declined = 0, decline_reason = '', dietary = ? WHERE id = ?",
-    args: [dietary, id],
+    sql: "UPDATE guests SET confirmed = 1, declined = 0, decline_reason = '', dietary = ?, plus_one = ?, plus_one_name = ? WHERE id = ?",
+    args: [dietary, plusOne ? 1 : 0, plusOneName, id],
   });
 
   if (result.rowsAffected === 0) {
