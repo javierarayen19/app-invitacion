@@ -17,11 +17,13 @@ export default function GuestList({
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   function handleCopyLink(guestId: string) {
+    const guest = guests.find((g) => g.id === guestId);
     const url = `${window.location.origin}/invitacion/${guestId}`;
+    const message = `🎉 Hola${guest ? ` ${guest.name}` : ""}! Estas invitado/a a una fiesta muy especial 🥳✨\n\nAbre tu invitacion personalizada aqui:\n${url}\n\nTe esperamos! 💛`;
 
     function fallbackCopy() {
       const textarea = document.createElement("textarea");
-      textarea.value = url;
+      textarea.value = message;
       textarea.style.position = "fixed";
       textarea.style.opacity = "0";
       document.body.appendChild(textarea);
@@ -33,7 +35,7 @@ export default function GuestList({
     }
 
     if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(url).then(() => {
+      navigator.clipboard.writeText(message).then(() => {
         setCopiedId(guestId);
         setTimeout(() => setCopiedId(null), 2000);
       }).catch(() => {
