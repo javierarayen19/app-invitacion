@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { PlaylistSong } from "@/types/playlist";
 import Sparkles from "@/components/Sparkles";
 
-const SPOTIFY_PLAYLIST_URL = "https://open.spotify.com/playlist/37i9dQZF1DXaKIA8E7WcJj";
+const SPOTIFY_PLAYLIST_URL = "https://open.spotify.com/playlist/1t93ohUyM6sEnqVg5WALfh?si=dfnTpONoSxeGfHR75hnJKA";
 
 export default function PlaylistPage() {
   const [songs, setSongs] = useState<PlaylistSong[]>([]);
