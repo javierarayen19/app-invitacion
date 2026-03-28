@@ -1,6 +1,23 @@
 import { Resend } from "resend";
+import { getDb } from "./db";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+async function getNotificationEmail(): Promise<string | null> {
+  // Primero intenta variable de entorno
+  if (process.env.NOTIFICATION_EMAIL) return process.env.NOTIFICATION_EMAIL;
+  // Si no, busca en la base de datos
+  try {
+    const db = getDb();
+    const result = await db.execute(
+      "SELECT value FROM settings WHERE key = 'notification_email'"
+    );
+    const email = result.rows[0]?.value as string;
+    return email || null;
+  } catch {
+    return null;
+  }
+}
 
 export async function sendConfirmationEmail(
   guestName: string,
@@ -9,11 +26,13 @@ export async function sendConfirmationEmail(
   isDecline: boolean = false,
   declineReason: string = ""
 ) {
-  const toEmail = process.env.NOTIFICATION_EMAIL;
+  const toEmail = await getNotificationEmail();
   if (!toEmail) {
-    console.error("NOTIFICATION_EMAIL no esta configurado");
+    console.error("NOTIFICATION_EMAIL no esta configurado (ni en env ni en settings)");
     return;
   }
+
+  console.log(`[Email] Enviando a ${toEmail} - ${isDecline ? "rechazo" : "confirmacion"} de ${guestName}`);
 
   if (isDecline) {
     const reasonLine = declineReason
@@ -22,7 +41,7 @@ export async function sendConfirmationEmail(
         </div>`
       : "";
 
-    await resend.emails.send({
+    const declineResult = await resend.emails.send({
       from: "Fiesta Invitados <onboarding@resend.dev>",
       to: toEmail,
       subject: `${guestName} no podra asistir al cumple de ${birthdayPerson}`,
@@ -45,6 +64,7 @@ export async function sendConfirmationEmail(
         </div>
       `,
     });
+    console.log("[Email] Resultado rechazo:", JSON.stringify(declineResult));
     return;
   }
 
@@ -54,7 +74,7 @@ export async function sendConfirmationEmail(
       </div>`
     : "";
 
-  await resend.emails.send({
+  const confirmResult = await resend.emails.send({
     from: "Fiesta Invitados <onboarding@resend.dev>",
     to: toEmail,
     subject: `${guestName} confirmo asistencia al cumple de ${birthdayPerson}!`,
@@ -77,4 +97,5 @@ export async function sendConfirmationEmail(
       </div>
     `,
   });
+  console.log("[Email] Resultado confirmacion:", JSON.stringify(confirmResult));
 }
