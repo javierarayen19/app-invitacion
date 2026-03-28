@@ -6,12 +6,13 @@ import type { PartySettings } from "@/types/settings";
 export default function SettingsPanel() {
   const [isOpen, setIsOpen] = useState(false);
   const [settings, setSettings] = useState<PartySettings>({
-    organizer_whatsapp: "",
+    notification_email: "",
     party_date: "",
     party_time: "",
     party_location: "",
     birthday_person: "",
     party_message: "",
+    party_safety_message: "",
   });
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -92,17 +93,17 @@ export default function SettingsPanel() {
 
           <div>
             <label className="block text-xs font-medium text-foreground/40 mb-1.5 tracking-wide uppercase">
-              WhatsApp del organizador
+              Correo de notificaciones
             </label>
             <input
-              type="tel"
-              value={settings.organizer_whatsapp}
-              onChange={(e) => updateField("organizer_whatsapp", e.target.value)}
-              placeholder="Ej: 56912345678"
+              type="email"
+              value={settings.notification_email}
+              onChange={(e) => updateField("notification_email", e.target.value)}
+              placeholder="Ej: javiera@gmail.com"
               className={inputClass}
             />
             <p className="text-xs text-foreground/20 mt-1">
-              Codigo de pais sin + ni espacios
+              Recibiras un correo cada vez que alguien confirme asistencia
             </p>
           </div>
 
@@ -155,6 +156,22 @@ export default function SettingsPanel() {
               rows={3}
               className={`${inputClass} resize-none`}
             />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-foreground/40 mb-1.5 tracking-wide uppercase">
+              Mensaje de seguridad
+            </label>
+            <textarea
+              value={settings.party_safety_message}
+              onChange={(e) => updateField("party_safety_message", e.target.value)}
+              placeholder="Ej: Prefiere venir en Uber, NO SE CONDUCE CON ALCOHOL EN EL CUERPO"
+              rows={3}
+              className={`${inputClass} resize-none`}
+            />
+            <p className="text-xs text-foreground/20 mt-1">
+              Se mostrara destacado en la invitacion con icono de advertencia
+            </p>
           </div>
 
           <button

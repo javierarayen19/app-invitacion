@@ -85,7 +85,7 @@ export default function GuestList({
             <p className="font-medium text-foreground/90 truncate text-sm">
               {guest.name}
             </p>
-            <p className="text-xs mt-0.5">
+            <p className="text-xs mt-0.5 flex items-center gap-2">
               <span
                 className={
                   guest.confirmed ? "text-emerald-accent/70" : "text-gold/50"
@@ -93,6 +93,11 @@ export default function GuestList({
               >
                 {guest.confirmed ? "Confirmado" : "Pendiente"}
               </span>
+              {guest.dietary && (
+                <span className="text-rose-accent/60 bg-rose-accent/10 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                  {guest.dietary}
+                </span>
+              )}
             </p>
           </div>
 

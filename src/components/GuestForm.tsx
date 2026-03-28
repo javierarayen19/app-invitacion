@@ -9,6 +9,7 @@ interface GuestFormProps {
 export default function GuestForm({ onGuestAdded }: GuestFormProps) {
   const [name, setName] = useState("");
   const [confirmed, setConfirmed] = useState(true);
+  const [dietary, setDietary] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -21,7 +22,7 @@ export default function GuestForm({ onGuestAdded }: GuestFormProps) {
       const res = await fetch("/api/guests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, confirmed }),
+        body: JSON.stringify({ name, confirmed, dietary }),
       });
 
       if (!res.ok) {
@@ -31,6 +32,7 @@ export default function GuestForm({ onGuestAdded }: GuestFormProps) {
 
       setName("");
       setConfirmed(true);
+      setDietary("");
       onGuestAdded();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
@@ -61,6 +63,32 @@ export default function GuestForm({ onGuestAdded }: GuestFormProps) {
                      focus:bg-white/[0.05]
                      transition-all duration-300"
         />
+      </div>
+
+      <div>
+        <label
+          htmlFor="dietary"
+          className="block text-sm font-medium text-foreground/50 mb-2 tracking-wide"
+        >
+          Restriccion alimentaria
+        </label>
+        <select
+          id="dietary"
+          value={dietary}
+          onChange={(e) => setDietary(e.target.value)}
+          className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-border
+                     text-foreground
+                     focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20
+                     focus:bg-white/[0.05]
+                     transition-all duration-300 appearance-none"
+        >
+          <option value="" className="bg-[#0a0a0f]">Sin restriccion</option>
+          <option value="Vegano" className="bg-[#0a0a0f]">Vegano</option>
+          <option value="Vegetariano" className="bg-[#0a0a0f]">Vegetariano</option>
+          <option value="Alergico" className="bg-[#0a0a0f]">Alergico</option>
+          <option value="Celiaco" className="bg-[#0a0a0f]">Celiaco</option>
+          <option value="Intolerante a lactosa" className="bg-[#0a0a0f]">Intolerante a lactosa</option>
+        </select>
       </div>
 
       <div className="flex items-center gap-3">

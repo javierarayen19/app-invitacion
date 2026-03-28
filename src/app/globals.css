@@ -96,6 +96,12 @@ html {
   100% { transform: scale(1.5); opacity: 0; }
 }
 
+/* Floating glow animation */
+@keyframes floatGlow {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
+  50% { transform: translateY(-30px) scale(1.05); opacity: 0.7; }
+}
+
 /* Noise texture overlay */
 .noise-overlay::before {
   content: "";

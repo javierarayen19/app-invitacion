@@ -5,7 +5,7 @@ export async function GET() {
   const db = getDb();
   const guests = db
     .prepare(
-      `SELECT id, name, confirmed, created_at as createdAt
+      `SELECT id, name, confirmed, dietary, created_at as createdAt
        FROM guests ORDER BY created_at DESC`
     )
     .all()
@@ -19,7 +19,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { name, confirmed } = body;
+  const { name, confirmed, dietary } = body;
 
   if (!name || typeof name !== "string" || name.trim().length === 0) {
     return Response.json(
@@ -32,13 +32,13 @@ export async function POST(request: NextRequest) {
   const id = crypto.randomUUID();
 
   db.prepare(
-    `INSERT INTO guests (id, name, confirmed)
-     VALUES (?, ?, ?)`
-  ).run(id, name.trim(), confirmed ? 1 : 0);
+    `INSERT INTO guests (id, name, confirmed, dietary)
+     VALUES (?, ?, ?, ?)`
+  ).run(id, name.trim(), confirmed ? 1 : 0, dietary || "");
 
   const guest = db
     .prepare(
-      `SELECT id, name, confirmed, created_at as createdAt
+      `SELECT id, name, confirmed, dietary, created_at as createdAt
        FROM guests WHERE id = ?`
     )
     .get(id) as Record<string, unknown>;
@@ -92,7 +92,7 @@ export async function PATCH(request: NextRequest) {
 
   const guest = db
     .prepare(
-      `SELECT id, name, confirmed, created_at as createdAt
+      `SELECT id, name, confirmed, dietary, created_at as createdAt
        FROM guests WHERE id = ?`
     )
     .get(id) as Record<string, unknown>;

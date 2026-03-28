@@ -2,12 +2,13 @@ import { NextRequest } from "next/server";
 import { getDb } from "@/lib/db";
 
 const VALID_KEYS = [
-  "organizer_whatsapp",
+  "notification_email",
   "party_date",
   "party_time",
   "party_location",
   "birthday_person",
   "party_message",
+  "party_safety_message",
 ];
 
 export async function GET() {

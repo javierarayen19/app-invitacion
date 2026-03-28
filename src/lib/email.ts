@@ -4,13 +4,20 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendConfirmationEmail(
   guestName: string,
-  birthdayPerson: string
+  birthdayPerson: string,
+  dietary: string = ""
 ) {
   const toEmail = process.env.NOTIFICATION_EMAIL;
   if (!toEmail) {
     console.error("NOTIFICATION_EMAIL no esta configurado");
     return;
   }
+
+  const dietaryLine = dietary
+    ? `<div style="text-align: center; padding: 12px; background: #fef3c7; border-radius: 12px; color: #92400e; margin-top: 12px;">
+        <strong>Restriccion alimentaria:</strong> ${dietary}
+      </div>`
+    : "";
 
   await resend.emails.send({
     from: "Fiesta Invitados <onboarding@resend.dev>",
@@ -28,6 +35,7 @@ export async function sendConfirmationEmail(
         <div style="text-align: center; padding: 16px; background: #ecfdf5; border-radius: 12px; color: #065f46;">
           <strong>Estado:</strong> Confirmado ✅
         </div>
+        ${dietaryLine}
         <p style="text-align: center; color: #d97706; font-size: 14px; margin-top: 24px;">
           Enviado desde tu app Fiesta Invitados
         </p>

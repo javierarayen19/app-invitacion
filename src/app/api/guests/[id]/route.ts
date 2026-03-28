@@ -10,7 +10,7 @@ export async function GET(
 
   const guest = db
     .prepare(
-      "SELECT id, name, confirmed, created_at as createdAt FROM guests WHERE id = ?"
+      "SELECT id, name, confirmed, dietary, created_at as createdAt FROM guests WHERE id = ?"
     )
     .get(id) as Record<string, unknown> | undefined;
 
@@ -40,9 +40,17 @@ export async function PATCH(
   const { id } = await params;
   const db = getDb();
 
+  let dietary = "";
+  try {
+    const body = await request.json();
+    dietary = body.dietary || "";
+  } catch {
+    // No body sent
+  }
+
   const result = db
-    .prepare("UPDATE guests SET confirmed = 1 WHERE id = ?")
-    .run(id);
+    .prepare("UPDATE guests SET confirmed = 1, dietary = ? WHERE id = ?")
+    .run(dietary, id);
 
   if (result.changes === 0) {
     return Response.json(
@@ -53,8 +61,8 @@ export async function PATCH(
 
   // Send email notification
   const guest = db
-    .prepare("SELECT name FROM guests WHERE id = ?")
-    .get(id) as { name: string } | undefined;
+    .prepare("SELECT name, dietary FROM guests WHERE id = ?")
+    .get(id) as { name: string; dietary: string } | undefined;
 
   const birthdayPerson = (
     db
@@ -63,7 +71,7 @@ export async function PATCH(
   )?.value || "";
 
   if (guest) {
-    sendConfirmationEmail(guest.name, birthdayPerson).catch(console.error);
+    sendConfirmationEmail(guest.name, birthdayPerson, guest.dietary).catch(console.error);
   }
 
   return Response.json({ success: true });
