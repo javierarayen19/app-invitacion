@@ -8,7 +8,6 @@ interface GuestFormProps {
 
 export default function GuestForm({ onGuestAdded }: GuestFormProps) {
   const [name, setName] = useState("");
-  const [companions, setCompanions] = useState(0);
   const [confirmed, setConfirmed] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -22,7 +21,7 @@ export default function GuestForm({ onGuestAdded }: GuestFormProps) {
       const res = await fetch("/api/guests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, companions, confirmed }),
+        body: JSON.stringify({ name, confirmed }),
       });
 
       if (!res.ok) {
@@ -31,7 +30,6 @@ export default function GuestForm({ onGuestAdded }: GuestFormProps) {
       }
 
       setName("");
-      setCompanions(0);
       setConfirmed(true);
       onGuestAdded();
     } catch (err) {
@@ -62,30 +60,6 @@ export default function GuestForm({ onGuestAdded }: GuestFormProps) {
                      focus:outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-200
                      transition-all duration-200"
         />
-      </div>
-
-      <div>
-        <label
-          htmlFor="companions"
-          className="block text-sm font-semibold text-amber-900 mb-1.5"
-        >
-          Acompanantes
-        </label>
-        <input
-          id="companions"
-          type="number"
-          min={0}
-          max={20}
-          value={companions}
-          onChange={(e) => setCompanions(Number(e.target.value))}
-          className="w-full px-4 py-3 rounded-xl border-2 border-amber-200 bg-white/70
-                     text-amber-950
-                     focus:outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-200
-                     transition-all duration-200"
-        />
-        <p className="text-xs text-amber-600 mt-1">
-          Personas adicionales que vienen con este invitado
-        </p>
       </div>
 
       <div className="flex items-center gap-3">

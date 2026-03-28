@@ -21,11 +21,27 @@ export function getDb(): Database.Database {
       CREATE TABLE IF NOT EXISTS guests (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
-        companions INTEGER NOT NULL DEFAULT 0,
         confirmed INTEGER NOT NULL DEFAULT 1,
         created_at TEXT NOT NULL DEFAULT (datetime('now'))
       )
     `);
+
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      )
+    `);
+
+    const seedSetting = db.prepare(
+      "INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)"
+    );
+    seedSetting.run("organizer_whatsapp", "");
+    seedSetting.run("party_date", "");
+    seedSetting.run("party_time", "");
+    seedSetting.run("party_location", "");
+    seedSetting.run("birthday_person", "");
+    seedSetting.run("party_message", "");
   }
 
   return db;

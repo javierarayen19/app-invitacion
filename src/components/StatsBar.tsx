@@ -8,11 +8,7 @@ interface StatsBarProps {
 
 export default function StatsBar({ guests }: StatsBarProps) {
   const totalGuests = guests.length;
-  const totalPeople = guests.reduce((sum, g) => sum + 1 + g.companions, 0);
   const confirmed = guests.filter((g) => g.confirmed).length;
-  const confirmedPeople = guests
-    .filter((g) => g.confirmed)
-    .reduce((sum, g) => sum + 1 + g.companions, 0);
 
   const stats = [
     {
@@ -22,27 +18,15 @@ export default function StatsBar({ guests }: StatsBarProps) {
       icon: "📋",
     },
     {
-      label: "Total personas",
-      value: totalPeople,
-      color: "from-rose-400 to-pink-400",
-      icon: "👥",
-    },
-    {
       label: "Confirmados",
       value: confirmed,
       color: "from-emerald-400 to-teal-400",
       icon: "✅",
     },
-    {
-      label: "Personas confirm.",
-      value: confirmedPeople,
-      color: "from-violet-400 to-purple-400",
-      icon: "🎉",
-    },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 gap-3">
       {stats.map((stat) => (
         <div
           key={stat.label}

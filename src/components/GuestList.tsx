@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { Guest } from "@/types/guest";
 
 interface GuestListProps {
@@ -13,6 +14,16 @@ export default function GuestList({
   onDelete,
   onToggleConfirm,
 }: GuestListProps) {
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  function handleCopyLink(guestId: string) {
+    const url = `${window.location.origin}/invitacion/${guestId}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiedId(guestId);
+      setTimeout(() => setCopiedId(null), 2000);
+    });
+  }
+
   if (guests.length === 0) {
     return (
       <div className="text-center py-12">
@@ -59,11 +70,7 @@ export default function GuestList({
             <p className="font-semibold text-amber-950 truncate">
               {guest.name}
             </p>
-            <p className="text-xs text-amber-600">
-              {guest.companions > 0
-                ? `+${guest.companions} acompanante${guest.companions > 1 ? "s" : ""}`
-                : "Sin acompanantes"}
-              {" · "}
+            <p className="text-xs">
               <span
                 className={
                   guest.confirmed ? "text-emerald-600" : "text-amber-500"
@@ -74,9 +81,29 @@ export default function GuestList({
             </p>
           </div>
 
-          <span className="shrink-0 text-sm font-bold text-amber-800 bg-amber-100 px-3 py-1 rounded-full">
-            {1 + guest.companions}
-          </span>
+          <button
+            onClick={() => handleCopyLink(guest.id)}
+            className={`shrink-0 h-8 px-3 rounded-full flex items-center justify-center gap-1.5
+                       text-xs font-medium transition-all duration-200
+                       ${
+                         copiedId === guest.id
+                           ? "bg-emerald-100 text-emerald-600"
+                           : "bg-amber-50 text-amber-600 hover:bg-amber-100 opacity-0 group-hover:opacity-100"
+                       }`}
+            title="Copiar enlace de invitacion"
+          >
+            {copiedId === guest.id ? (
+              <>
+                <span>✓</span>
+                <span>Copiado</span>
+              </>
+            ) : (
+              <>
+                <span>🔗</span>
+                <span>Copiar</span>
+              </>
+            )}
+          </button>
 
           <button
             onClick={() => onDelete(guest.id)}

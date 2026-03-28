@@ -5,6 +5,7 @@ import type { Guest } from "@/types/guest";
 import GuestForm from "@/components/GuestForm";
 import GuestList from "@/components/GuestList";
 import StatsBar from "@/components/StatsBar";
+import SettingsPanel from "@/components/SettingsPanel";
 
 export default function Home() {
   const [guests, setGuests] = useState<Guest[]>([]);
@@ -73,6 +74,11 @@ export default function Home() {
             Registra y controla los invitados a tu cumpleanos
           </p>
         </header>
+
+        {/* Settings */}
+        <section className="mb-6">
+          <SettingsPanel />
+        </section>
 
         {/* Stats */}
         <section className="mb-8">
