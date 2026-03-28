@@ -137,7 +137,7 @@ export default function GuestList({
                        ${
                          copiedId === guest.id
                            ? "bg-emerald-accent/15 text-emerald-accent border border-emerald-accent/30"
-                           : "bg-white/[0.03] text-foreground/30 border border-transparent hover:border-border hover:text-gold/70 opacity-0 group-hover:opacity-100"
+                           : "bg-white/[0.03] text-foreground/40 border border-border/50 hover:border-border hover:text-gold/70"
                        }`}
             title="Copiar enlace de invitacion"
           >
@@ -162,9 +162,9 @@ export default function GuestList({
           <button
             onClick={() => onDelete(guest.id)}
             className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center
-                       text-foreground/15 hover:text-rose-accent hover:bg-rose-accent/10
-                       border border-transparent hover:border-rose-accent/20
-                       opacity-0 group-hover:opacity-100 transition-all duration-300"
+                       text-foreground/30 hover:text-rose-accent hover:bg-rose-accent/10
+                       border border-border/50 hover:border-rose-accent/20
+                       transition-all duration-300"
             title="Eliminar invitado"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

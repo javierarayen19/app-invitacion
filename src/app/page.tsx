@@ -181,6 +181,24 @@ export default function Home() {
             Registra y controla los invitados a tu cumpleanos
           </p>
           <div className="mt-4 w-24 h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent mx-auto" />
+
+          <button
+            onClick={() => {
+              sessionStorage.removeItem("admin_auth");
+              setAuthenticated(false);
+            }}
+            className="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-xl
+                       bg-white/[0.03] border border-border text-foreground/30
+                       hover:text-rose-accent hover:border-rose-accent/20 hover:bg-rose-accent/5
+                       text-xs font-medium transition-all duration-300"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Cerrar Sesion
+          </button>
         </header>
 
         {/* Settings */}
