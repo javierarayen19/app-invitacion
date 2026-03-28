@@ -1,23 +1,21 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 
-export default function MusicPlayer() {
+interface MusicPlayerProps {
+  onReady?: () => void;
+}
+
+export default function MusicPlayer({ onReady }: MusicPlayerProps) {
   const [playing, setPlaying] = useState(false);
   const [showPulse, setShowPulse] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const readyCalled = useRef(false);
 
   useEffect(() => {
     audioRef.current = new Audio("/music/post-malone-too-young.mp3");
     audioRef.current.loop = true;
     audioRef.current.volume = 0.3;
-
-    audioRef.current.play().then(() => {
-      setPlaying(true);
-      setShowPulse(false);
-    }).catch(() => {
-      // Autoplay bloqueado por el navegador — el usuario puede presionar el botón
-    });
 
     return () => {
       if (audioRef.current) {
@@ -27,16 +25,43 @@ export default function MusicPlayer() {
     };
   }, []);
 
+  const startMusic = useCallback(() => {
+    if (!audioRef.current) return;
+    audioRef.current.play().then(() => {
+      setPlaying(true);
+      setShowPulse(false);
+      if (!readyCalled.current && onReady) {
+        readyCalled.current = true;
+        onReady();
+      }
+    }).catch(() => {
+      // Fallback: still trigger onReady even if audio blocked
+      if (!readyCalled.current && onReady) {
+        readyCalled.current = true;
+        onReady();
+      }
+    });
+  }, [onReady]);
+
   function toggle() {
     if (!audioRef.current) return;
     if (playing) {
       audioRef.current.pause();
+      setPlaying(false);
     } else {
       audioRef.current.play().catch(() => {});
+      setPlaying(true);
     }
-    setPlaying(!playing);
     setShowPulse(false);
   }
+
+  // Expose startMusic on the window for the intro screen to call
+  useEffect(() => {
+    (window as unknown as Record<string, unknown>).__startMusic = startMusic;
+    return () => {
+      delete (window as unknown as Record<string, unknown>).__startMusic;
+    };
+  }, [startMusic]);
 
   return (
     <button

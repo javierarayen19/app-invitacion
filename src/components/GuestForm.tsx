@@ -2,6 +2,17 @@
 
 import { useState } from "react";
 
+const DIETARY_OPTIONS = [
+  "Vegano",
+  "Vegetariano",
+  "Alergico",
+  "Celiaco",
+  "Intolerante a lactosa",
+  "Sin gluten",
+  "Sin mariscos",
+  "Sin frutos secos",
+];
+
 interface GuestFormProps {
   onGuestAdded: () => void;
 }
@@ -9,9 +20,17 @@ interface GuestFormProps {
 export default function GuestForm({ onGuestAdded }: GuestFormProps) {
   const [name, setName] = useState("");
   const [confirmed, setConfirmed] = useState(true);
-  const [dietary, setDietary] = useState("");
+  const [selectedDietary, setSelectedDietary] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  function toggleDietary(option: string) {
+    setSelectedDietary((prev) =>
+      prev.includes(option)
+        ? prev.filter((d) => d !== option)
+        : [...prev, option]
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -22,7 +41,11 @@ export default function GuestForm({ onGuestAdded }: GuestFormProps) {
       const res = await fetch("/api/guests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, confirmed, dietary }),
+        body: JSON.stringify({
+          name,
+          confirmed,
+          dietary: selectedDietary.join(", "),
+        }),
       });
 
       if (!res.ok) {
@@ -32,7 +55,7 @@ export default function GuestForm({ onGuestAdded }: GuestFormProps) {
 
       setName("");
       setConfirmed(true);
-      setDietary("");
+      setSelectedDietary([]);
       onGuestAdded();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
@@ -66,29 +89,34 @@ export default function GuestForm({ onGuestAdded }: GuestFormProps) {
       </div>
 
       <div>
-        <label
-          htmlFor="dietary"
-          className="block text-sm font-medium text-foreground/50 mb-2 tracking-wide"
-        >
+        <label className="block text-sm font-medium text-foreground/50 mb-2 tracking-wide">
           Restriccion alimentaria
         </label>
-        <select
-          id="dietary"
-          value={dietary}
-          onChange={(e) => setDietary(e.target.value)}
-          className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-border
-                     text-foreground
-                     focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20
-                     focus:bg-white/[0.05]
-                     transition-all duration-300 appearance-none"
-        >
-          <option value="" className="bg-[#0a0a0f]">Sin restriccion</option>
-          <option value="Vegano" className="bg-[#0a0a0f]">Vegano</option>
-          <option value="Vegetariano" className="bg-[#0a0a0f]">Vegetariano</option>
-          <option value="Alergico" className="bg-[#0a0a0f]">Alergico</option>
-          <option value="Celiaco" className="bg-[#0a0a0f]">Celiaco</option>
-          <option value="Intolerante a lactosa" className="bg-[#0a0a0f]">Intolerante a lactosa</option>
-        </select>
+        <div className="flex flex-wrap gap-2">
+          {DIETARY_OPTIONS.map((option) => {
+            const isSelected = selectedDietary.includes(option);
+            return (
+              <button
+                key={option}
+                type="button"
+                onClick={() => toggleDietary(option)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium
+                           transition-all duration-200 border
+                           ${isSelected
+                             ? "bg-gold/15 border-gold/40 text-gold"
+                             : "bg-white/[0.02] border-border text-foreground/40 hover:border-border-hover hover:text-foreground/60"
+                           }`}
+              >
+                {option}
+              </button>
+            );
+          })}
+        </div>
+        {selectedDietary.length > 0 && (
+          <p className="text-xs text-gold/50 mt-1.5">
+            {selectedDietary.join(", ")}
+          </p>
+        )}
       </div>
 
       <div className="flex items-center gap-3">
