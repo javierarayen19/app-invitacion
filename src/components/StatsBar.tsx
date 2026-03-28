@@ -9,7 +9,8 @@ interface StatsBarProps {
 export default function StatsBar({ guests }: StatsBarProps) {
   const totalGuests = guests.length;
   const confirmed = guests.filter((g) => g.confirmed).length;
-  const pending = totalGuests - confirmed;
+  const declined = guests.filter((g) => g.declined).length;
+  const pending = totalGuests - confirmed - declined;
 
   const stats = [
     {
@@ -45,9 +46,23 @@ export default function StatsBar({ guests }: StatsBarProps) {
     },
   ];
 
+  const allStats = [
+    ...stats,
+    {
+      label: "No asistiran",
+      value: declined,
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e85d75" strokeWidth="2">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      ),
+    },
+  ];
+
   return (
-    <div className="grid grid-cols-3 gap-4">
-      {stats.map((stat) => (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      {allStats.map((stat) => (
         <div
           key={stat.label}
           className="relative p-5 rounded-2xl bg-surface border border-border

@@ -13,6 +13,7 @@ export default function SettingsPanel() {
     birthday_person: "",
     party_message: "",
     party_safety_message: "",
+    admin_password: "",
   });
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -171,6 +172,22 @@ export default function SettingsPanel() {
             />
             <p className="text-xs text-foreground/20 mt-1">
               Se mostrara destacado en la invitacion con icono de advertencia
+            </p>
+          </div>
+
+          <div className="pt-2 border-t border-border">
+            <label className="block text-xs font-medium text-foreground/40 mb-1.5 tracking-wide uppercase">
+              Contraseña de admin
+            </label>
+            <input
+              type="password"
+              value={settings.admin_password}
+              onChange={(e) => updateField("admin_password", e.target.value)}
+              placeholder="Establece una contraseña para proteger el panel"
+              className={inputClass}
+            />
+            <p className="text-xs text-foreground/20 mt-1">
+              Se pedira al ingresar al panel de administracion
             </p>
           </div>
 

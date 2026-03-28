@@ -6,4 +6,5 @@ export interface PartySettings {
   birthday_person: string;
   party_message: string;
   party_safety_message: string;
+  admin_password: string;
 }

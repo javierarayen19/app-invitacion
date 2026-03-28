@@ -1,23 +1,25 @@
 import { NextRequest } from "next/server";
-import { getDb } from "@/lib/db";
+import { getDb, initDb } from "@/lib/db";
 
 export async function GET() {
+  await initDb();
   const db = getDb();
-  const guests = db
-    .prepare(
-      `SELECT id, name, confirmed, dietary, created_at as createdAt
-       FROM guests ORDER BY created_at DESC`
-    )
-    .all() as Record<string, unknown>[];
-  const mapped = guests.map((g) => ({
-      ...g,
-      confirmed: Boolean(g.confirmed),
-    }));
+  const result = await db.execute(
+    `SELECT id, name, confirmed, declined, decline_reason, dietary, created_at as createdAt
+     FROM guests ORDER BY created_at DESC`
+  );
 
-  return Response.json(mapped);
+  const guests = result.rows.map((g) => ({
+    ...g,
+    confirmed: Boolean(g.confirmed),
+    declined: Boolean(g.declined),
+  }));
+
+  return Response.json(guests);
 }
 
 export async function POST(request: NextRequest) {
+  await initDb();
   const body = await request.json();
   const { name, confirmed, dietary } = body;
 
@@ -31,25 +33,27 @@ export async function POST(request: NextRequest) {
   const db = getDb();
   const id = crypto.randomUUID();
 
-  db.prepare(
-    `INSERT INTO guests (id, name, confirmed, dietary)
-     VALUES (?, ?, ?, ?)`
-  ).run(id, name.trim(), confirmed ? 1 : 0, dietary || "");
+  await db.execute({
+    sql: `INSERT INTO guests (id, name, confirmed, dietary) VALUES (?, ?, ?, ?)`,
+    args: [id, name.trim(), confirmed ? 1 : 0, dietary || ""],
+  });
 
-  const guest = db
-    .prepare(
-      `SELECT id, name, confirmed, dietary, created_at as createdAt
-       FROM guests WHERE id = ?`
-    )
-    .get(id) as Record<string, unknown>;
+  const result = await db.execute({
+    sql: `SELECT id, name, confirmed, declined, decline_reason, dietary, created_at as createdAt
+          FROM guests WHERE id = ?`,
+    args: [id],
+  });
+
+  const guest = result.rows[0];
 
   return Response.json(
-    { ...guest, confirmed: Boolean(guest.confirmed) },
+    { ...guest, confirmed: Boolean(guest.confirmed), declined: Boolean(guest.declined) },
     { status: 201 }
   );
 }
 
 export async function DELETE(request: NextRequest) {
+  await initDb();
   const { searchParams } = request.nextUrl;
   const id = searchParams.get("id");
 
@@ -58,9 +62,12 @@ export async function DELETE(request: NextRequest) {
   }
 
   const db = getDb();
-  const result = db.prepare("DELETE FROM guests WHERE id = ?").run(id);
+  const result = await db.execute({
+    sql: "DELETE FROM guests WHERE id = ?",
+    args: [id],
+  });
 
-  if (result.changes === 0) {
+  if (result.rowsAffected === 0) {
     return Response.json(
       { error: "Invitado no encontrado" },
       { status: 404 }
@@ -71,6 +78,7 @@ export async function DELETE(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
+  await initDb();
   const body = await request.json();
   const { id, confirmed } = body;
 
@@ -79,23 +87,23 @@ export async function PATCH(request: NextRequest) {
   }
 
   const db = getDb();
-  const result = db
-    .prepare("UPDATE guests SET confirmed = ? WHERE id = ?")
-    .run(confirmed ? 1 : 0, id);
+  const result = await db.execute({
+    sql: "UPDATE guests SET confirmed = ?, declined = 0, decline_reason = '' WHERE id = ?",
+    args: [confirmed ? 1 : 0, id],
+  });
 
-  if (result.changes === 0) {
+  if (result.rowsAffected === 0) {
     return Response.json(
       { error: "Invitado no encontrado" },
       { status: 404 }
     );
   }
 
-  const guest = db
-    .prepare(
-      `SELECT id, name, confirmed, dietary, created_at as createdAt
-       FROM guests WHERE id = ?`
-    )
-    .get(id) as Record<string, unknown>;
+  const guest = (await db.execute({
+    sql: `SELECT id, name, confirmed, declined, decline_reason, dietary, created_at as createdAt
+          FROM guests WHERE id = ?`,
+    args: [id],
+  })).rows[0];
 
-  return Response.json({ ...guest, confirmed: Boolean(guest.confirmed) });
+  return Response.json({ ...guest, confirmed: Boolean(guest.confirmed), declined: Boolean(guest.declined) });
 }

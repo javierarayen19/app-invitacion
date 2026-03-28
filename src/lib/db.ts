@@ -1,60 +1,65 @@
-import Database from "better-sqlite3";
-import path from "path";
+import { createClient, type Client } from "@libsql/client";
 
-const DB_PATH = path.join(process.cwd(), "data", "guests.db");
+let client: Client | null = null;
 
-let db: Database.Database | null = null;
+export function getDb(): Client {
+  if (!client) {
+    client = createClient({
+      url: process.env.TURSO_DATABASE_URL!,
+      authToken: process.env.TURSO_AUTH_TOKEN,
+    });
+  }
+  return client;
+}
 
-export function getDb(): Database.Database {
-  if (!db) {
-    const fs = require("fs");
-    const dir = path.dirname(DB_PATH);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
+let initialized = false;
 
-    db = new Database(DB_PATH);
-    db.pragma("journal_mode = WAL");
-    db.pragma("foreign_keys = ON");
+export async function initDb() {
+  if (initialized) return;
+  const db = getDb();
 
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS guests (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        confirmed INTEGER NOT NULL DEFAULT 1,
-        dietary TEXT NOT NULL DEFAULT '',
-        created_at TEXT NOT NULL DEFAULT (datetime('now'))
-      )
-    `);
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS guests (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      confirmed INTEGER NOT NULL DEFAULT 0,
+      declined INTEGER NOT NULL DEFAULT 0,
+      decline_reason TEXT NOT NULL DEFAULT '',
+      dietary TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `);
 
-    // Add dietary column if missing (existing DBs)
-    try {
-      db.exec("ALTER TABLE guests ADD COLUMN dietary TEXT NOT NULL DEFAULT ''");
-    } catch {
-      // Column already exists
-    }
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    )
+  `);
 
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS settings (
-        key TEXT PRIMARY KEY,
-        value TEXT NOT NULL
-      )
-    `);
+  // Add columns if missing (existing DBs)
+  const safeAlter = async (sql: string) => {
+    try { await db.execute(sql); } catch { /* column exists */ }
+  };
+  await safeAlter("ALTER TABLE guests ADD COLUMN dietary TEXT NOT NULL DEFAULT ''");
+  await safeAlter("ALTER TABLE guests ADD COLUMN declined INTEGER NOT NULL DEFAULT 0");
+  await safeAlter("ALTER TABLE guests ADD COLUMN decline_reason TEXT NOT NULL DEFAULT ''");
 
-    const seedSetting = db.prepare(
-      "INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)"
-    );
-    seedSetting.run("notification_email", "");
-    seedSetting.run("party_date", "");
-    seedSetting.run("party_time", "");
-    seedSetting.run("party_location", "");
-    seedSetting.run("birthday_person", "");
-    seedSetting.run("party_message", "");
-    seedSetting.run("party_safety_message", "");
-
-    // Remove old whatsapp key if present
-    db.prepare("DELETE FROM settings WHERE key = 'organizer_whatsapp'").run();
+  // Seed settings
+  const seeds = [
+    "notification_email", "party_date", "party_time",
+    "party_location", "birthday_person", "party_message",
+    "party_safety_message", "admin_password",
+  ];
+  for (const key of seeds) {
+    await db.execute({
+      sql: "INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)",
+      args: [key, ""],
+    });
   }
 
-  return db;
+  // Remove old whatsapp key
+  await db.execute("DELETE FROM settings WHERE key = 'organizer_whatsapp'");
+
+  initialized = true;
 }

@@ -11,6 +11,19 @@ import Sparkles from "@/components/Sparkles";
 export default function Home() {
   const [guests, setGuests] = useState<Guest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [password, setPassword] = useState("");
+  const [authError, setAuthError] = useState("");
+
+  // Check if password is set
+  useEffect(() => {
+    const saved = sessionStorage.getItem("admin_auth");
+    if (saved === "true") {
+      setAuthenticated(true);
+    }
+    setCheckingAuth(false);
+  }, []);
 
   const fetchGuests = useCallback(async () => {
     try {
@@ -25,8 +38,29 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    fetchGuests();
-  }, [fetchGuests]);
+    if (authenticated) fetchGuests();
+  }, [authenticated, fetchGuests]);
+
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
+    setAuthError("");
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAuthenticated(true);
+        sessionStorage.setItem("admin_auth", "true");
+      } else {
+        setAuthError("Contraseña incorrecta");
+      }
+    } catch {
+      setAuthError("Error de conexion");
+    }
+  }
 
   async function handleDelete(id: string) {
     try {
@@ -48,6 +82,74 @@ export default function Home() {
     } catch (err) {
       console.error("Error actualizando invitado:", err);
     }
+  }
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-10 h-10 border-2 border-gold/20 border-t-gold rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Login screen
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen bg-background relative noise-overlay">
+        <Sparkles />
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute -top-64 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-gold/[0.04] blur-[120px]" />
+        </div>
+
+        <div className="relative z-10 min-h-screen flex items-center justify-center px-4">
+          <div className="w-full max-w-sm p-8 rounded-3xl bg-surface border border-border glow-gold text-center">
+            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gold">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </div>
+
+            <h1 className="text-2xl font-display font-bold text-gold mb-2">
+              Panel de Admin
+            </h1>
+            <p className="text-foreground/30 text-sm mb-6">
+              Ingresa la contraseña para acceder
+            </p>
+
+            <form onSubmit={handleLogin} className="space-y-4">
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Contraseña"
+                required
+                className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-border
+                           text-foreground placeholder:text-foreground/20 text-center
+                           focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20
+                           focus:bg-white/[0.05] transition-all duration-300"
+              />
+
+              {authError && (
+                <p className="text-sm text-rose-accent bg-rose-accent/10 px-4 py-2 rounded-xl border border-rose-accent/20">
+                  {authError}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                className="w-full py-3.5 rounded-xl font-semibold text-background text-sm tracking-wide
+                           bg-gradient-to-r from-gold-dark via-gold to-gold-light
+                           hover:shadow-[0_0_30px_rgba(212,168,83,0.3)]
+                           active:scale-[0.98] transition-all duration-300"
+              >
+                Acceder
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

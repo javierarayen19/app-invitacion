@@ -66,6 +66,70 @@ function AnimatedSection({
   );
 }
 
+function Countdown({ targetDate }: { targetDate: string }) {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [expired, setExpired] = useState(false);
+
+  useEffect(() => {
+    function calculate() {
+      const target = new Date(targetDate + "T00:00:00").getTime();
+      const now = Date.now();
+      const diff = target - now;
+
+      if (diff <= 0) {
+        setExpired(true);
+        return;
+      }
+
+      setTimeLeft({
+        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((diff / (1000 * 60)) % 60),
+        seconds: Math.floor((diff / 1000) % 60),
+      });
+    }
+
+    calculate();
+    const interval = setInterval(calculate, 1000);
+    return () => clearInterval(interval);
+  }, [targetDate]);
+
+  if (expired) {
+    return (
+      <div className="p-4 rounded-2xl bg-gold/[0.06] border border-gold/15 text-center">
+        <p className="text-gold font-display font-bold text-lg">La fiesta es hoy!</p>
+      </div>
+    );
+  }
+
+  const units = [
+    { value: timeLeft.days, label: "Dias" },
+    { value: timeLeft.hours, label: "Horas" },
+    { value: timeLeft.minutes, label: "Min" },
+    { value: timeLeft.seconds, label: "Seg" },
+  ];
+
+  return (
+    <div className="p-5 rounded-2xl bg-gold/[0.04] border border-gold/10">
+      <p className="text-xs font-medium text-gold/50 uppercase tracking-[0.2em] mb-3">
+        Cuenta regresiva
+      </p>
+      <div className="grid grid-cols-4 gap-3">
+        {units.map((unit) => (
+          <div key={unit.label} className="text-center">
+            <div className="text-3xl sm:text-4xl font-display font-bold text-gold text-glow tabular-nums">
+              {String(unit.value).padStart(2, "0")}
+            </div>
+            <div className="text-[10px] text-foreground/30 uppercase tracking-[0.15em] mt-1">
+              {unit.label}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function InvitacionPage({
   params,
 }: {
@@ -79,6 +143,7 @@ export default function InvitacionPage({
   const [loading, setLoading] = useState(true);
   const [confirming, setConfirming] = useState(false);
   const [justConfirmed, setJustConfirmed] = useState(false);
+  const [justDeclined, setJustDeclined] = useState(false);
 
   // Intro screen states
   const [showIntro, setShowIntro] = useState(true);
@@ -87,6 +152,11 @@ export default function InvitacionPage({
 
   // Dietary multi-select
   const [selectedDietary, setSelectedDietary] = useState<string[]>([]);
+
+  // Decline
+  const [showDeclineForm, setShowDeclineForm] = useState(false);
+  const [declineReason, setDeclineReason] = useState("");
+  const [declining, setDeclining] = useState(false);
 
   useEffect(() => {
     fetch(`/api/guests/${id}`)
@@ -114,11 +184,9 @@ export default function InvitacionPage({
   }
 
   const handleEnter = useCallback(() => {
-    // Trigger music
     const startMusic = (window as unknown as Record<string, () => void>).__startMusic;
     if (startMusic) startMusic();
 
-    // Fade out intro
     setIntroFading(true);
     setTimeout(() => {
       setShowIntro(false);
@@ -126,9 +194,7 @@ export default function InvitacionPage({
     }, 800);
   }, []);
 
-  const handleMusicReady = useCallback(() => {
-    // Music started or failed gracefully — content reveal is already handled by handleEnter
-  }, []);
+  const handleMusicReady = useCallback(() => {}, []);
 
   async function handleConfirm() {
     setConfirming(true);
@@ -137,16 +203,36 @@ export default function InvitacionPage({
       const res = await fetch(`/api/guests/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dietary: dietaryStr }),
+        body: JSON.stringify({ dietary: dietaryStr, action: "confirm" }),
       });
       if (res.ok) {
-        setGuest((prev) => (prev ? { ...prev, confirmed: true, dietary: dietaryStr } : prev));
+        setGuest((prev) => (prev ? { ...prev, confirmed: true, declined: false, dietary: dietaryStr } : prev));
         setJustConfirmed(true);
       }
     } catch (err) {
       console.error("Error confirmando:", err);
     } finally {
       setConfirming(false);
+    }
+  }
+
+  async function handleDecline() {
+    setDeclining(true);
+    try {
+      const res = await fetch(`/api/guests/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "decline", decline_reason: declineReason }),
+      });
+      if (res.ok) {
+        setGuest((prev) => (prev ? { ...prev, declined: true, confirmed: false, decline_reason: declineReason } : prev));
+        setJustDeclined(true);
+        setShowDeclineForm(false);
+      }
+    } catch (err) {
+      console.error("Error declinando:", err);
+    } finally {
+      setDeclining(false);
     }
   }
 
@@ -181,6 +267,7 @@ export default function InvitacionPage({
   }
 
   const alreadyConfirmed = guest.confirmed && !justConfirmed;
+  const alreadyDeclined = guest.declined && !justDeclined;
 
   return (
     <div className="min-h-screen bg-background relative noise-overlay">
@@ -192,7 +279,6 @@ export default function InvitacionPage({
           className={`fixed inset-0 z-[100] bg-background flex flex-col items-center justify-center px-6
                       transition-opacity duration-700 ${introFading ? "opacity-0" : "opacity-100"}`}
         >
-          {/* Floating particles on intro */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             {Array.from({ length: 8 }).map((_, i) => (
               <div
@@ -208,11 +294,9 @@ export default function InvitacionPage({
             ))}
           </div>
 
-          {/* Glow behind title */}
           <div className="absolute w-[400px] h-[400px] rounded-full bg-gold/[0.04] blur-[120px]" />
 
           <div className="relative text-center animate-[fadeInUp_1s_ease-out]">
-            {/* Stars */}
             <div className="flex justify-center gap-3 mb-6">
               {[0, 1, 2].map((i) => (
                 <svg
@@ -246,7 +330,6 @@ export default function InvitacionPage({
                          animate-[fadeInUp_1.2s_ease-out_0.5s_both]"
             >
               <span className="relative z-10">Abrir Invitacion</span>
-              <span className="absolute inset-0 rounded-2xl border-2 border-gold/0 group-hover:border-gold/30 transition-all duration-500" />
             </button>
 
             <p className="text-foreground/20 text-xs mt-6 tracking-wider animate-[fadeInUp_1.2s_ease-out_0.8s_both]">
@@ -262,7 +345,6 @@ export default function InvitacionPage({
           <Sparkles />
           {(justConfirmed || alreadyConfirmed) && <Confetti />}
 
-          {/* Ambient glows - animated */}
           <div className="fixed inset-0 pointer-events-none overflow-hidden">
             <div className="absolute -top-48 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-gold/[0.04] blur-[150px] animate-[floatGlow_8s_ease-in-out_infinite]" />
             <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-rose-accent/[0.03] blur-[120px] animate-[floatGlow_10s_ease-in-out_infinite_reverse]" />
@@ -271,11 +353,9 @@ export default function InvitacionPage({
 
           <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
             <div className="w-full max-w-lg">
-              {/* Invitation card */}
               <AnimatedSection show={showContent} delay={0}>
                 <div className="p-10 sm:p-12 rounded-3xl bg-surface border border-border glow-gold-strong text-center animate-border-glow">
 
-                  {/* Star decoration */}
                   <AnimatedSection show={showContent} delay={300}>
                     <div className="flex justify-center gap-2 mb-4">
                       {[0, 1, 2].map((i) => (
@@ -316,8 +396,17 @@ export default function InvitacionPage({
                     </div>
                   </AnimatedSection>
 
+                  {/* Countdown */}
+                  {settings.party_date && (
+                    <AnimatedSection show={showContent} delay={1200}>
+                      <div className="mb-8">
+                        <Countdown targetDate={settings.party_date} />
+                      </div>
+                    </AnimatedSection>
+                  )}
+
                   {/* Party details */}
-                  <AnimatedSection show={showContent} delay={1300}>
+                  <AnimatedSection show={showContent} delay={1400}>
                     <div className="space-y-3 mb-8">
                       {settings.party_date && (
                         <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.02] border border-border">
@@ -330,12 +419,8 @@ export default function InvitacionPage({
                             </svg>
                           </div>
                           <div className="text-left">
-                            <p className="text-xs font-medium text-foreground/30 uppercase tracking-[0.15em]">
-                              Fecha
-                            </p>
-                            <p className="font-medium text-foreground/80 text-sm">
-                              {formatDate(settings.party_date)}
-                            </p>
+                            <p className="text-xs font-medium text-foreground/30 uppercase tracking-[0.15em]">Fecha</p>
+                            <p className="font-medium text-foreground/80 text-sm">{formatDate(settings.party_date)}</p>
                           </div>
                         </div>
                       )}
@@ -349,12 +434,8 @@ export default function InvitacionPage({
                             </svg>
                           </div>
                           <div className="text-left">
-                            <p className="text-xs font-medium text-foreground/30 uppercase tracking-[0.15em]">
-                              Hora
-                            </p>
-                            <p className="font-medium text-foreground/80 text-sm">
-                              {formatTime(settings.party_time)}
-                            </p>
+                            <p className="text-xs font-medium text-foreground/30 uppercase tracking-[0.15em]">Hora</p>
+                            <p className="font-medium text-foreground/80 text-sm">{formatTime(settings.party_time)}</p>
                           </div>
                         </div>
                       )}
@@ -368,12 +449,8 @@ export default function InvitacionPage({
                             </svg>
                           </div>
                           <div className="text-left">
-                            <p className="text-xs font-medium text-foreground/30 uppercase tracking-[0.15em]">
-                              Lugar
-                            </p>
-                            <p className="font-medium text-foreground/80 text-sm">
-                              {settings.party_location}
-                            </p>
+                            <p className="text-xs font-medium text-foreground/30 uppercase tracking-[0.15em]">Lugar</p>
+                            <p className="font-medium text-foreground/80 text-sm">{settings.party_location}</p>
                           </div>
                         </div>
                       )}
@@ -382,7 +459,7 @@ export default function InvitacionPage({
 
                   {/* Custom message */}
                   {settings.party_message && (
-                    <AnimatedSection show={showContent} delay={1600}>
+                    <AnimatedSection show={showContent} delay={1700}>
                       <div className="mb-6 p-5 rounded-2xl bg-rose-accent/[0.04] border border-rose-accent/10">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-rose-accent/60 mx-auto mb-2">
                           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -394,9 +471,9 @@ export default function InvitacionPage({
                     </AnimatedSection>
                   )}
 
-                  {/* Safety message (Uber / no driving) */}
+                  {/* Safety message */}
                   {settings.party_safety_message && (
-                    <AnimatedSection show={showContent} delay={1800}>
+                    <AnimatedSection show={showContent} delay={1900}>
                       <div className="mb-8 p-5 rounded-2xl bg-amber-500/[0.06] border border-amber-500/15">
                         <div className="flex items-center justify-center gap-2 mb-2">
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-amber-400">
@@ -415,8 +492,8 @@ export default function InvitacionPage({
                     </AnimatedSection>
                   )}
 
-                  {/* Dietary multi-select + Confirm / Confirmed */}
-                  <AnimatedSection show={showContent} delay={2000}>
+                  {/* Confirm / Decline / Status */}
+                  <AnimatedSection show={showContent} delay={2100}>
                     {guest.confirmed ? (
                       <div className="p-6 rounded-2xl bg-emerald-accent/[0.06] border border-emerald-accent/15">
                         <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-emerald-accent/10 border border-emerald-accent/20 flex items-center justify-center">
@@ -425,14 +502,10 @@ export default function InvitacionPage({
                           </svg>
                         </div>
                         <p className="font-display font-bold text-emerald-accent text-lg">
-                          {justConfirmed
-                            ? "Asistencia confirmada!"
-                            : "Ya confirmaste tu asistencia"}
+                          {justConfirmed ? "Asistencia confirmada!" : "Ya confirmaste tu asistencia"}
                         </p>
                         <p className="text-emerald-accent/50 text-sm mt-1">
-                          {justConfirmed
-                            ? "Gracias! Te esperamos"
-                            : "Nos vemos en la fiesta!"}
+                          {justConfirmed ? "Gracias! Te esperamos" : "Nos vemos en la fiesta!"}
                         </p>
                         {guest.dietary && (
                           <p className="text-emerald-accent/40 text-xs mt-3">
@@ -440,8 +513,29 @@ export default function InvitacionPage({
                           </p>
                         )}
                       </div>
+                    ) : guest.declined ? (
+                      <div className="p-6 rounded-2xl bg-rose-accent/[0.06] border border-rose-accent/15">
+                        <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-rose-accent/10 border border-rose-accent/20 flex items-center justify-center">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-rose-accent">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                          </svg>
+                        </div>
+                        <p className="font-display font-bold text-rose-accent text-lg">
+                          {justDeclined ? "Respuesta registrada" : "No asisitras a la fiesta"}
+                        </p>
+                        <p className="text-rose-accent/50 text-sm mt-1">
+                          {justDeclined ? "Gracias por avisarnos" : "Esperamos verte en otra ocasion"}
+                        </p>
+                        {guest.decline_reason && (
+                          <p className="text-rose-accent/40 text-xs mt-3">
+                            Motivo: {guest.decline_reason}
+                          </p>
+                        )}
+                      </div>
                     ) : (
                       <div className="space-y-5">
+                        {/* Dietary selection */}
                         <div>
                           <label className="block text-xs font-medium text-foreground/40 mb-3 tracking-wide uppercase text-left">
                             Tienes alguna restriccion alimentaria?
@@ -463,10 +557,7 @@ export default function InvitacionPage({
                                 >
                                   <span className="flex items-center gap-2">
                                     <span className={`w-4 h-4 rounded flex items-center justify-center border transition-all
-                                                      ${isSelected
-                                                        ? "bg-gold/20 border-gold/50"
-                                                        : "border-foreground/20"
-                                                      }`}>
+                                                      ${isSelected ? "bg-gold/20 border-gold/50" : "border-foreground/20"}`}>
                                       {isSelected && (
                                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="text-gold">
                                           <polyline points="20 6 9 17 4 12" />
@@ -486,6 +577,7 @@ export default function InvitacionPage({
                           )}
                         </div>
 
+                        {/* Confirm button */}
                         <button
                           onClick={handleConfirm}
                           disabled={confirming}
@@ -497,20 +589,65 @@ export default function InvitacionPage({
                         >
                           {confirming ? "Confirmando..." : "Confirmar Asistencia"}
                         </button>
+
+                        {/* Decline section */}
+                        {!showDeclineForm ? (
+                          <button
+                            onClick={() => setShowDeclineForm(true)}
+                            className="w-full py-3 rounded-xl text-sm text-foreground/30
+                                       hover:text-rose-accent/70 hover:bg-rose-accent/[0.04]
+                                       border border-transparent hover:border-rose-accent/15
+                                       transition-all duration-300"
+                          >
+                            No puedo asistir
+                          </button>
+                        ) : (
+                          <div className="p-4 rounded-2xl bg-rose-accent/[0.04] border border-rose-accent/15 space-y-3">
+                            <p className="text-sm text-foreground/50 text-left">
+                              Lamentamos que no puedas venir. Quieres dejar un motivo?
+                            </p>
+                            <textarea
+                              value={declineReason}
+                              onChange={(e) => setDeclineReason(e.target.value)}
+                              placeholder="Ej: Tengo otro compromiso ese dia (opcional)"
+                              rows={2}
+                              className="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-border
+                                         text-foreground text-sm placeholder:text-foreground/20
+                                         focus:outline-none focus:border-rose-accent/30
+                                         transition-all duration-300 resize-none"
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={handleDecline}
+                                disabled={declining}
+                                className="flex-1 py-2.5 rounded-xl text-sm font-medium
+                                           bg-rose-accent/15 text-rose-accent border border-rose-accent/25
+                                           hover:bg-rose-accent/25 disabled:opacity-50
+                                           transition-all duration-300"
+                              >
+                                {declining ? "Enviando..." : "Confirmar que no asistire"}
+                              </button>
+                              <button
+                                onClick={() => setShowDeclineForm(false)}
+                                className="px-4 py-2.5 rounded-xl text-sm text-foreground/30
+                                           hover:text-foreground/50 border border-border
+                                           transition-all duration-300"
+                              >
+                                Volver
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </AnimatedSection>
                 </div>
               </AnimatedSection>
 
-              {/* Bottom decoration */}
-              <AnimatedSection show={showContent} delay={2300}>
+              <AnimatedSection show={showContent} delay={2400}>
                 <div className="flex justify-center gap-1 mt-8">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="w-1 h-1 rounded-full bg-gold/20"
-                    />
+                    <div key={i} className="w-1 h-1 rounded-full bg-gold/20" />
                   ))}
                 </div>
               </AnimatedSection>
