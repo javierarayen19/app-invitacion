@@ -1,6 +1,7 @@
 export const SHOPPING_CATEGORIES = [
   "Comida Fuerte",
   "Comida para Picar",
+  "Dulces y Torta",
   "Decoracion",
   "Mesa y Servicio",
   "Liquidos",

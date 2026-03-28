@@ -7,6 +7,7 @@ import { SHOPPING_CATEGORIES } from "@/types/shopping";
 const CATEGORY_ICONS: Record<string, string> = {
   "Comida Fuerte": "🍖",
   "Comida para Picar": "🍿",
+  "Dulces y Torta": "🎂",
   "Decoracion": "🎈",
   "Mesa y Servicio": "🍽️",
   "Liquidos": "🥤",
