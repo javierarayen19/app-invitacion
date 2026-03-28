@@ -713,19 +713,19 @@ export default function InvitacionPage({
                     )}
                   </AnimatedSection>
 
-                  {/* Links to playlist and gallery */}
+                  {/* Link to playlist */}
                   <AnimatedSection show={showContent} delay={2300}>
-                    <div className="mt-8 grid grid-cols-2 gap-3">
+                    <div className="mt-8 flex justify-center">
                       <a
                         href="/playlist"
-                        className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl
+                        className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl
                                    border border-gold/30 text-gold text-sm font-medium
                                    bg-gold/[0.04] hover:bg-gold/[0.10] hover:border-gold/50
                                    hover:shadow-[0_0_15px_rgba(212,168,83,0.1)]
                                    transition-all duration-300"
                       >
                         <span>🎵</span>
-                        Sugerir Canciones
+                        Sugerir Canciones para la Fiesta
                       </a>
                     </div>
                   </AnimatedSection>
