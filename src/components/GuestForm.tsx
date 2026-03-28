@@ -44,7 +44,7 @@ export default function GuestForm({ onGuestAdded }: GuestFormProps) {
       <div>
         <label
           htmlFor="name"
-          className="block text-sm font-semibold text-amber-900 mb-1.5"
+          className="block text-sm font-medium text-foreground/50 mb-2 tracking-wide"
         >
           Nombre del invitado
         </label>
@@ -55,10 +55,11 @@ export default function GuestForm({ onGuestAdded }: GuestFormProps) {
           onChange={(e) => setName(e.target.value)}
           placeholder="Ej: Maria Lopez"
           required
-          className="w-full px-4 py-3 rounded-xl border-2 border-amber-200 bg-white/70
-                     text-amber-950 placeholder:text-amber-300
-                     focus:outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-200
-                     transition-all duration-200"
+          className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-border
+                     text-foreground placeholder:text-foreground/20
+                     focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20
+                     focus:bg-white/[0.05]
+                     transition-all duration-300"
         />
       </div>
 
@@ -66,24 +67,28 @@ export default function GuestForm({ onGuestAdded }: GuestFormProps) {
         <button
           type="button"
           onClick={() => setConfirmed(!confirmed)}
-          className={`relative w-12 h-7 rounded-full transition-colors duration-200 ${
-            confirmed ? "bg-emerald-500" : "bg-amber-200"
+          className={`relative w-12 h-7 rounded-full transition-all duration-300 ${
+            confirmed
+              ? "bg-emerald-accent/30 border border-emerald-accent/50"
+              : "bg-white/[0.05] border border-border"
           }`}
         >
           <span
-            className={`absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow-md
-                        transition-transform duration-200 ${
-                          confirmed ? "translate-x-5" : "translate-x-0"
+            className={`absolute top-0.5 left-0.5 w-6 h-6 rounded-full shadow-md
+                        transition-all duration-300 ${
+                          confirmed
+                            ? "translate-x-5 bg-emerald-accent"
+                            : "translate-x-0 bg-foreground/30"
                         }`}
           />
         </button>
-        <span className="text-sm font-medium text-amber-900">
+        <span className="text-sm text-foreground/50">
           {confirmed ? "Confirmado" : "Pendiente"}
         </span>
       </div>
 
       {error && (
-        <p className="text-sm text-rose-600 bg-rose-50 px-4 py-2 rounded-lg">
+        <p className="text-sm text-rose-accent bg-rose-accent/10 px-4 py-2.5 rounded-xl border border-rose-accent/20">
           {error}
         </p>
       )}
@@ -91,12 +96,11 @@ export default function GuestForm({ onGuestAdded }: GuestFormProps) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-3.5 rounded-xl font-bold text-white
-                   bg-gradient-to-r from-rose-500 to-amber-500
-                   hover:from-rose-600 hover:to-amber-600
+        className="w-full py-3.5 rounded-xl font-semibold text-background text-sm tracking-wide
+                   bg-gradient-to-r from-gold-dark via-gold to-gold-light
+                   hover:shadow-[0_0_30px_rgba(212,168,83,0.3)]
                    active:scale-[0.98] disabled:opacity-50
-                   transition-all duration-200 shadow-lg shadow-rose-200/50
-                   text-base tracking-wide"
+                   transition-all duration-300"
       >
         {loading ? "Agregando..." : "Agregar Invitado"}
       </button>
