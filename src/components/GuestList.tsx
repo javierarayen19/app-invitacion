@@ -18,10 +18,30 @@ export default function GuestList({
 
   function handleCopyLink(guestId: string) {
     const url = `${window.location.origin}/invitacion/${guestId}`;
-    navigator.clipboard.writeText(url).then(() => {
+
+    function fallbackCopy() {
+      const textarea = document.createElement("textarea");
+      textarea.value = url;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
       setCopiedId(guestId);
       setTimeout(() => setCopiedId(null), 2000);
-    });
+    }
+
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(url).then(() => {
+        setCopiedId(guestId);
+        setTimeout(() => setCopiedId(null), 2000);
+      }).catch(() => {
+        fallbackCopy();
+      });
+    } else {
+      fallbackCopy();
+    }
   }
 
   if (guests.length === 0) {
