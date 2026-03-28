@@ -9,7 +9,7 @@ export const SHOPPING_CATEGORIES = [
 
 export type ShoppingCategory = (typeof SHOPPING_CATEGORIES)[number];
 
-export const BUDGET_TOTAL = 350000;
+export const BUDGET_TOTAL = 400000;
 
 export interface ShoppingItem {
   id: string;
