@@ -3,6 +3,15 @@
 import { useState } from "react";
 import { SHOPPING_CATEGORIES } from "@/types/shopping";
 
+const CATEGORY_ICONS: Record<string, string> = {
+  "Comida Fuerte": "🍖",
+  "Comida para Picar": "🍿",
+  "Dulces y Torta": "🎂",
+  "Decoracion": "🎈",
+  "Mesa y Servicio": "🍽️",
+  "Liquidos": "🥤",
+};
+
 function formatPrice(value: string): string {
   const digits = value.replace(/\D/g, "");
   if (!digits) return "";
@@ -119,20 +128,28 @@ export default function ShoppingForm({ onItemAdded }: ShoppingFormProps) {
         <label className="block text-sm font-medium text-foreground/50 mb-2 tracking-wide">
           Categoria
         </label>
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-border
-                     text-foreground appearance-none
-                     focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20
-                     focus:bg-white/[0.05] transition-all duration-300"
-        >
-          {SHOPPING_CATEGORIES.map((cat) => (
-            <option key={cat} value={cat} className="bg-surface text-foreground">
-              {cat}
-            </option>
-          ))}
-        </select>
+        <div className="grid grid-cols-2 gap-2">
+          {SHOPPING_CATEGORIES.map((cat) => {
+            const isSelected = category === cat;
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setCategory(cat)}
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-left
+                           text-xs font-medium transition-all duration-300
+                           ${
+                             isSelected
+                               ? "bg-gold/10 border-gold/30 text-gold shadow-[0_0_12px_rgba(212,168,83,0.1)]"
+                               : "bg-white/[0.02] border-border/50 text-foreground/40 hover:border-gold/20 hover:text-foreground/60 hover:bg-white/[0.04]"
+                           }`}
+              >
+                <span className="text-base">{CATEGORY_ICONS[cat]}</span>
+                <span>{cat}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div>

@@ -211,29 +211,43 @@ export default function ShoppingList({
                         className={inputClass}
                       />
                     </div>
+                    <div>
+                      <label className="block text-[10px] text-foreground/30 mb-1 uppercase tracking-wider">Categoria</label>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {SHOPPING_CATEGORIES.map((cat) => {
+                          const isSelected = editCategory === cat;
+                          return (
+                            <button
+                              key={cat}
+                              type="button"
+                              onClick={() => setEditCategory(cat)}
+                              className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg border text-left
+                                         text-[10px] font-medium transition-all duration-300
+                                         ${
+                                           isSelected
+                                             ? "bg-gold/10 border-gold/30 text-gold"
+                                             : "bg-white/[0.02] border-border/50 text-foreground/35 hover:border-gold/20 hover:text-foreground/50"
+                                         }`}
+                            >
+                              <span className="text-xs">{CATEGORY_ICONS[cat]}</span>
+                              <span>{cat}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                     <div className="flex items-center gap-2">
-                      <select
-                        value={editCategory}
-                        onChange={(e) => setEditCategory(e.target.value)}
-                        className={`${inputClass} flex-1 appearance-none`}
-                      >
-                        {SHOPPING_CATEGORIES.map((cat) => (
-                          <option key={cat} value={cat} className="bg-surface text-foreground">
-                            {cat}
-                          </option>
-                        ))}
-                      </select>
                       <button
                         type="button"
                         onClick={() => setEditUrgent(!editUrgent)}
-                        className={`shrink-0 px-3 py-2 rounded-lg border transition-all duration-300 text-sm
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-all duration-300 text-xs font-medium
                                    ${
                                      editUrgent
                                        ? "bg-rose-accent/10 border-rose-accent/40 text-rose-accent"
                                        : "bg-white/[0.03] border-border text-foreground/30"
                                    }`}
                       >
-                        🔥
+                        🔥 {editUrgent ? "Urgente" : "Marcar urgente"}
                       </button>
                     </div>
                     <div className="flex gap-2">
