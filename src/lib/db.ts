@@ -42,6 +42,7 @@ export async function initDb() {
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       quantity INTEGER NOT NULL DEFAULT 1,
+      price INTEGER NOT NULL DEFAULT 0,
       category TEXT NOT NULL,
       bought INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -55,6 +56,7 @@ export async function initDb() {
   await safeAlter("ALTER TABLE guests ADD COLUMN dietary TEXT NOT NULL DEFAULT ''");
   await safeAlter("ALTER TABLE guests ADD COLUMN declined INTEGER NOT NULL DEFAULT 0");
   await safeAlter("ALTER TABLE guests ADD COLUMN decline_reason TEXT NOT NULL DEFAULT ''");
+  await safeAlter("ALTER TABLE shopping_items ADD COLUMN price INTEGER NOT NULL DEFAULT 0");
 
   // Seed settings
   const seeds = [

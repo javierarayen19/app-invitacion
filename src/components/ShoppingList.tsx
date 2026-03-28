@@ -50,6 +50,7 @@ export default function ShoppingList({
       {grouped.map((group) => {
         const boughtCount = group.items.filter((i) => i.bought).length;
         const allBought = boughtCount === group.items.length;
+        const categoryTotal = group.items.reduce((sum, i) => sum + (i.price * i.quantity), 0);
 
         return (
           <div key={group.category}>
@@ -61,15 +62,22 @@ export default function ShoppingList({
                   {group.category}
                 </h3>
               </div>
-              <span
-                className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                  allBought
-                    ? "bg-emerald-accent/15 text-emerald-accent"
-                    : "bg-gold/10 text-gold/60"
-                }`}
-              >
-                {boughtCount}/{group.items.length}
-              </span>
+              <div className="flex items-center gap-2">
+                {categoryTotal > 0 && (
+                  <span className="text-[10px] font-medium text-gold/50">
+                    ${categoryTotal.toLocaleString("es-CL")}
+                  </span>
+                )}
+                <span
+                  className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                    allBought
+                      ? "bg-emerald-accent/15 text-emerald-accent"
+                      : "bg-gold/10 text-gold/60"
+                  }`}
+                >
+                  {boughtCount}/{group.items.length}
+                </span>
+              </div>
             </div>
 
             {/* Items */}
@@ -114,18 +122,25 @@ export default function ShoppingList({
                     </span>
                   </div>
 
-                  {/* Quantity badge */}
-                  {item.quantity > 1 && (
-                    <span
-                      className={`shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full ${
-                        item.bought
-                          ? "bg-emerald-accent/10 text-emerald-accent/50"
-                          : "bg-gold/10 text-gold/70"
-                      }`}
-                    >
-                      x{item.quantity}
-                    </span>
-                  )}
+                  {/* Quantity & Price */}
+                  <div className={`shrink-0 flex items-center gap-1.5 ${item.bought ? "opacity-40" : ""}`}>
+                    {item.quantity > 1 && (
+                      <span
+                        className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
+                          item.bought
+                            ? "bg-emerald-accent/10 text-emerald-accent/50"
+                            : "bg-gold/10 text-gold/70"
+                        }`}
+                      >
+                        x{item.quantity}
+                      </span>
+                    )}
+                    {item.price > 0 && (
+                      <span className="text-[11px] font-semibold text-gold/60">
+                        ${(item.price * item.quantity).toLocaleString("es-CL")}
+                      </span>
+                    )}
+                  </div>
 
                   {/* Delete button */}
                   <button

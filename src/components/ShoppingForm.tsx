@@ -10,6 +10,7 @@ interface ShoppingFormProps {
 export default function ShoppingForm({ onItemAdded }: ShoppingFormProps) {
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [price, setPrice] = useState(0);
   const [category, setCategory] = useState<string>(SHOPPING_CATEGORIES[0]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -23,7 +24,7 @@ export default function ShoppingForm({ onItemAdded }: ShoppingFormProps) {
       const res = await fetch("/api/shopping", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, quantity, category }),
+        body: JSON.stringify({ name, quantity, price, category }),
       });
 
       if (!res.ok) {
@@ -33,6 +34,7 @@ export default function ShoppingForm({ onItemAdded }: ShoppingFormProps) {
 
       setName("");
       setQuantity(1);
+      setPrice(0);
       onItemAdded();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
@@ -78,23 +80,40 @@ export default function ShoppingForm({ onItemAdded }: ShoppingFormProps) {
         </div>
         <div>
           <label className="block text-sm font-medium text-foreground/50 mb-2 tracking-wide">
-            Categoria
+            Precio ($)
           </label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
+          <input
+            type="number"
+            min={0}
+            value={price || ""}
+            onChange={(e) => setPrice(Number(e.target.value))}
+            placeholder="0"
             className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-border
-                       text-foreground appearance-none
+                       text-foreground placeholder:text-foreground/20
                        focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20
                        focus:bg-white/[0.05] transition-all duration-300"
-          >
-            {SHOPPING_CATEGORIES.map((cat) => (
-              <option key={cat} value={cat} className="bg-surface text-foreground">
-                {cat}
-              </option>
-            ))}
-          </select>
+          />
         </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-foreground/50 mb-2 tracking-wide">
+          Categoria
+        </label>
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-border
+                     text-foreground appearance-none
+                     focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20
+                     focus:bg-white/[0.05] transition-all duration-300"
+        >
+          {SHOPPING_CATEGORIES.map((cat) => (
+            <option key={cat} value={cat} className="bg-surface text-foreground">
+              {cat}
+            </option>
+          ))}
+        </select>
       </div>
 
       {error && (
