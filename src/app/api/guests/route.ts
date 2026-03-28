@@ -1,37 +1,19 @@
 import { NextRequest } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
-import type { Guest } from "@/types/guest";
-
-const DATA_FILE = path.join(process.cwd(), "data", "guests.json");
-
-async function ensureDataFile() {
-  const dir = path.dirname(DATA_FILE);
-  try {
-    await fs.access(dir);
-  } catch {
-    await fs.mkdir(dir, { recursive: true });
-  }
-  try {
-    await fs.access(DATA_FILE);
-  } catch {
-    await fs.writeFile(DATA_FILE, "[]", "utf-8");
-  }
-}
-
-async function readGuests(): Promise<Guest[]> {
-  await ensureDataFile();
-  const data = await fs.readFile(DATA_FILE, "utf-8");
-  return JSON.parse(data);
-}
-
-async function writeGuests(guests: Guest[]) {
-  await ensureDataFile();
-  await fs.writeFile(DATA_FILE, JSON.stringify(guests, null, 2), "utf-8");
-}
+import { getDb } from "@/lib/db";
 
 export async function GET() {
-  const guests = await readGuests();
+  const db = getDb();
+  const guests = db
+    .prepare(
+      `SELECT id, name, companions, confirmed, created_at as createdAt
+       FROM guests ORDER BY created_at DESC`
+    )
+    .all()
+    .map((g: Record<string, unknown>) => ({
+      ...g,
+      confirmed: Boolean(g.confirmed),
+    }));
+
   return Response.json(guests);
 }
 
@@ -46,20 +28,25 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const guests = await readGuests();
+  const db = getDb();
+  const id = crypto.randomUUID();
 
-  const newGuest: Guest = {
-    id: crypto.randomUUID(),
-    name: name.trim(),
-    companions: Math.max(0, Number(companions) || 0),
-    confirmed: Boolean(confirmed),
-    createdAt: new Date().toISOString(),
-  };
+  db.prepare(
+    `INSERT INTO guests (id, name, companions, confirmed)
+     VALUES (?, ?, ?, ?)`
+  ).run(id, name.trim(), Math.max(0, Number(companions) || 0), confirmed ? 1 : 0);
 
-  guests.push(newGuest);
-  await writeGuests(guests);
+  const guest = db
+    .prepare(
+      `SELECT id, name, companions, confirmed, created_at as createdAt
+       FROM guests WHERE id = ?`
+    )
+    .get(id) as Record<string, unknown>;
 
-  return Response.json(newGuest, { status: 201 });
+  return Response.json(
+    { ...guest, confirmed: Boolean(guest.confirmed) },
+    { status: 201 }
+  );
 }
 
 export async function DELETE(request: NextRequest) {
@@ -70,17 +57,16 @@ export async function DELETE(request: NextRequest) {
     return Response.json({ error: "Se requiere el ID" }, { status: 400 });
   }
 
-  const guests = await readGuests();
-  const filtered = guests.filter((g) => g.id !== id);
+  const db = getDb();
+  const result = db.prepare("DELETE FROM guests WHERE id = ?").run(id);
 
-  if (filtered.length === guests.length) {
+  if (result.changes === 0) {
     return Response.json(
       { error: "Invitado no encontrado" },
       { status: 404 }
     );
   }
 
-  await writeGuests(filtered);
   return Response.json({ success: true });
 }
 
@@ -92,18 +78,24 @@ export async function PATCH(request: NextRequest) {
     return Response.json({ error: "Se requiere el ID" }, { status: 400 });
   }
 
-  const guests = await readGuests();
-  const guest = guests.find((g) => g.id === id);
+  const db = getDb();
+  const result = db
+    .prepare("UPDATE guests SET confirmed = ? WHERE id = ?")
+    .run(confirmed ? 1 : 0, id);
 
-  if (!guest) {
+  if (result.changes === 0) {
     return Response.json(
       { error: "Invitado no encontrado" },
       { status: 404 }
     );
   }
 
-  guest.confirmed = Boolean(confirmed);
-  await writeGuests(guests);
+  const guest = db
+    .prepare(
+      `SELECT id, name, companions, confirmed, created_at as createdAt
+       FROM guests WHERE id = ?`
+    )
+    .get(id) as Record<string, unknown>;
 
-  return Response.json(guest);
+  return Response.json({ ...guest, confirmed: Boolean(guest.confirmed) });
 }
