@@ -8,13 +8,13 @@ export async function GET() {
       `SELECT id, name, confirmed, dietary, created_at as createdAt
        FROM guests ORDER BY created_at DESC`
     )
-    .all()
-    .map((g: Record<string, unknown>) => ({
+    .all() as Record<string, unknown>[];
+  const mapped = guests.map((g) => ({
       ...g,
       confirmed: Boolean(g.confirmed),
     }));
 
-  return Response.json(guests);
+  return Response.json(mapped);
 }
 
 export async function POST(request: NextRequest) {
