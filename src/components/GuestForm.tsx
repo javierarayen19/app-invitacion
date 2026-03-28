@@ -19,7 +19,7 @@ interface GuestFormProps {
 
 export default function GuestForm({ onGuestAdded }: GuestFormProps) {
   const [name, setName] = useState("");
-  const [confirmed, setConfirmed] = useState(true);
+  const [confirmed] = useState(false);
   const [selectedDietary, setSelectedDietary] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -54,7 +54,6 @@ export default function GuestForm({ onGuestAdded }: GuestFormProps) {
       }
 
       setName("");
-      setConfirmed(true);
       setSelectedDietary([]);
       onGuestAdded();
     } catch (err) {
@@ -117,30 +116,6 @@ export default function GuestForm({ onGuestAdded }: GuestFormProps) {
             {selectedDietary.join(", ")}
           </p>
         )}
-      </div>
-
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => setConfirmed(!confirmed)}
-          className={`relative w-12 h-7 rounded-full transition-all duration-300 ${
-            confirmed
-              ? "bg-emerald-accent/30 border border-emerald-accent/50"
-              : "bg-white/[0.05] border border-border"
-          }`}
-        >
-          <span
-            className={`absolute top-0.5 left-0.5 w-6 h-6 rounded-full shadow-md
-                        transition-all duration-300 ${
-                          confirmed
-                            ? "translate-x-5 bg-emerald-accent"
-                            : "translate-x-0 bg-foreground/30"
-                        }`}
-          />
-        </button>
-        <span className="text-sm text-foreground/50">
-          {confirmed ? "Confirmado" : "Pendiente"}
-        </span>
       </div>
 
       {error && (
