@@ -258,6 +258,7 @@ export default function ComprasPage() {
                   items={items}
                   onToggleBought={handleToggleBought}
                   onDelete={handleDelete}
+                  onItemUpdated={fetchItems}
                 />
               )}
             </div>

@@ -81,6 +81,7 @@ export async function initDb() {
   await safeAlter("ALTER TABLE shopping_items ADD COLUMN urgent INTEGER NOT NULL DEFAULT 0");
   await safeAlter("ALTER TABLE guests ADD COLUMN plus_one INTEGER NOT NULL DEFAULT 0");
   await safeAlter("ALTER TABLE guests ADD COLUMN plus_one_name TEXT NOT NULL DEFAULT ''");
+  await safeAlter("ALTER TABLE shopping_items ADD COLUMN link TEXT NOT NULL DEFAULT ''");
 
   // Seed settings
   const seeds = [

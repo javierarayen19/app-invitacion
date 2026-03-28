@@ -19,5 +19,6 @@ export interface ShoppingItem {
   bought: boolean;
   responsible: string;
   urgent: boolean;
+  link: string;
   createdAt: string;
 }

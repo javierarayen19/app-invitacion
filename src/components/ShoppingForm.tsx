@@ -3,6 +3,17 @@
 import { useState } from "react";
 import { SHOPPING_CATEGORIES } from "@/types/shopping";
 
+function formatPrice(value: string): string {
+  const digits = value.replace(/\D/g, "");
+  if (!digits) return "";
+  return Number(digits).toLocaleString("es-CL");
+}
+
+function parsePrice(formatted: string): number {
+  const digits = formatted.replace(/\D/g, "");
+  return digits ? Number(digits) : 0;
+}
+
 interface ShoppingFormProps {
   onItemAdded: () => void;
 }
@@ -10,9 +21,10 @@ interface ShoppingFormProps {
 export default function ShoppingForm({ onItemAdded }: ShoppingFormProps) {
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState(1);
-  const [price, setPrice] = useState(0);
+  const [priceText, setPriceText] = useState("");
   const [category, setCategory] = useState<string>(SHOPPING_CATEGORIES[0]);
   const [responsible, setResponsible] = useState("");
+  const [link, setLink] = useState("");
   const [urgent, setUrgent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -22,11 +34,13 @@ export default function ShoppingForm({ onItemAdded }: ShoppingFormProps) {
     setError("");
     setLoading(true);
 
+    const price = parsePrice(priceText);
+
     try {
       const res = await fetch("/api/shopping", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, quantity, price, category, responsible, urgent }),
+        body: JSON.stringify({ name, quantity, price, category, responsible, urgent, link }),
       });
 
       if (!res.ok) {
@@ -36,8 +50,9 @@ export default function ShoppingForm({ onItemAdded }: ShoppingFormProps) {
 
       setName("");
       setQuantity(1);
-      setPrice(0);
+      setPriceText("");
       setResponsible("");
+      setLink("");
       setUrgent(false);
       onItemAdded();
     } catch (err) {
@@ -87,11 +102,11 @@ export default function ShoppingForm({ onItemAdded }: ShoppingFormProps) {
             Precio ($)
           </label>
           <input
-            type="number"
-            min={0}
-            value={price || ""}
-            onChange={(e) => setPrice(Number(e.target.value))}
-            placeholder="0"
+            type="text"
+            inputMode="numeric"
+            value={priceText}
+            onChange={(e) => setPriceText(formatPrice(e.target.value))}
+            placeholder="Ej: 49.900"
             className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-border
                        text-foreground placeholder:text-foreground/20
                        focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20
@@ -118,6 +133,22 @@ export default function ShoppingForm({ onItemAdded }: ShoppingFormProps) {
             </option>
           ))}
         </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-foreground/50 mb-2 tracking-wide">
+          Link del producto
+        </label>
+        <input
+          type="url"
+          value={link}
+          onChange={(e) => setLink(e.target.value)}
+          placeholder="Ej: https://www.jumbo.cl/pizza-napolitana"
+          className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-border
+                     text-foreground placeholder:text-foreground/20 text-sm
+                     focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20
+                     focus:bg-white/[0.05] transition-all duration-300"
+        />
       </div>
 
       <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
