@@ -727,17 +727,6 @@ export default function InvitacionPage({
                         <span>🎵</span>
                         Sugerir Canciones
                       </a>
-                      <a
-                        href="/galeria"
-                        className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl
-                                   border border-gold/30 text-gold text-sm font-medium
-                                   bg-gold/[0.04] hover:bg-gold/[0.10] hover:border-gold/50
-                                   hover:shadow-[0_0_15px_rgba(212,168,83,0.1)]
-                                   transition-all duration-300"
-                      >
-                        <span>📸</span>
-                        Galeria de Fotos
-                      </a>
                     </div>
                   </AnimatedSection>
                 </div>
